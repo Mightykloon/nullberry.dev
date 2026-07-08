@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link id="favicon" rel="icon" type="image/svg+xml" href="assets/favicon-dark.svg">
+  <script>
+    (function(){
+      var link = document.getElementById('favicon');
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      function setFav(e){ link.href = e.matches ? 'assets/favicon-dark.svg' : 'assets/favicon-light.svg'; }
+      setFav(mq);
+      mq.addEventListener('change', setFav);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#060409">
+  <title>Privacy Policy | Nullberry</title>
+  <meta name="description" content="Privacy policy for nullberry.dev.">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .legal-nav {
+      position: relative;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border-dim);
+      z-index: 1;
+    }
+
+    .legal-nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .legal-nav img { height: 24px; width: auto; }
+
+    .legal-back {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+
+    .legal-back:hover { color: var(--text); opacity: 1; }
+
+    .legal-main {
+      position: relative;
+      z-index: 1;
+      padding: clamp(3rem, 8vh, 5rem) 0 4.5rem;
+    }
+
+    .legal-main h1 {
+      font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+      margin-bottom: 0.6rem;
+    }
+
+    .legal-effective {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2.75rem;
+    }
+
+    .legal-effective::before { content: '// '; color: var(--accent-dim); }
+
+    .legal-main h2 {
+      font-size: 1.15rem;
+      margin: 2.4rem 0 0.7rem;
+      letter-spacing: -0.01em;
+    }
+
+    .legal-main p, .legal-main li {
+      font-size: 0.92rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .legal-main ul { padding-left: 1.4rem; margin-bottom: 1rem; }
+    .legal-main li { margin-bottom: 0.4rem; color: var(--text-secondary); }
+
+    .legal-main a { text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <nav class="legal-nav">
+    <div class="container">
+      <a href="index.html"><img src="assets/logo-white.svg" alt="Nullberry"></a>
+      <a href="index.html" class="legal-back">&larr; Back to site</a>
+    </div>
+  </nav>
+
+  <main class="legal-main">
+    <div class="container narrow">
+      <h1>Privacy Policy</h1>
+      <p class="legal-effective">Effective date: July 7, 2026</p>
+
+      <p>Nullberry LLC ("Nullberry", "we", "us") operates nullberry.dev (the "Site"). We build communication hardware for people who value independence from infrastructure, and that philosophy extends to how this Site treats your data: we collect the absolute minimum, and nothing happens behind your back. This policy explains what is involved when you visit.</p>
+
+      <h2>1. Information We Collect</h2>
+      <p>The Site itself sets no cookies, runs no analytics, and uses no advertising or fingerprinting trackers. There is exactly one way the Site can collect personal information from you, and it is entirely optional:</p>
+      <ul>
+        <li><strong>Waitlist email.</strong> If you enter your email address and join the waitlist, we store that address for one purpose: contacting you about Nullberry product availability, launches, and directly related updates. We do not sell it, rent it, share it with advertisers, or use it for unrelated marketing. Every message we send includes a way to opt out, and you can request deletion at any time (see Section 8).</li>
+      </ul>
+      <p>If you never touch the waitlist form, browsing the Site sends us nothing.</p>
+
+      <h2>2. Hosting and Server Logs</h2>
+      <p>The Site is hosted by Netlify, Inc. Like most hosting providers, Netlify maintains standard technical logs for security and operations, which may include IP addresses, browser type, and requested pages. We do not use this data to identify visitors. See the <a href="https://www.netlify.com/privacy/" target="_blank" rel="noopener">Netlify Privacy Policy</a> for details.</p>
+
+      <h2>3. Third-Party Content</h2>
+      <p>To render, the Site loads resources from third-party content delivery networks. When your browser requests these files, those services receive your IP address and standard request headers, as is inherent to any web request:</p>
+      <ul>
+        <li><strong>Google Fonts</strong> (fonts.googleapis.com, fonts.gstatic.com), operated by Google LLC. See the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</li>
+        <li><strong>unpkg</strong> (unpkg.com), a CDN operated on Cloudflare infrastructure that serves the JavaScript libraries powering the interactive OS demo.</li>
+      </ul>
+      <p>These requests deliver static files only; we attach no identifiers to them.</p>
+
+      <h2>4. The OS Demo</h2>
+      <p>The interactive Nullberry OS demo on this Site runs entirely in your browser. Anything you type into it (including the demo PIN) stays on your device, is not transmitted to us or anyone else, and disappears when you leave the page.</p>
+
+      <h2>5. External Links</h2>
+      <p>The Site links to third-party destinations, including GitHub and Discord. Those services operate under their own privacy policies once you leave the Site, and we are not responsible for their practices.</p>
+
+      <h2>6. Email Correspondence</h2>
+      <p>If you email us at damian@nullberry.dev, the contents of your message are used solely to respond to you. Correspondence is never added to a marketing list without your explicit request.</p>
+
+      <h2>7. Children's Privacy</h2>
+      <p>The Site is not directed at children under 13, and consistent with the Children's Online Privacy Protection Act (COPPA) we do not knowingly collect personal information from children. If you believe a child has submitted their email through the waitlist, contact us and we will delete it promptly.</p>
+
+      <h2>8. Your Rights and Choices</h2>
+      <p>Depending on your jurisdiction (including under the California Consumer Privacy Act and the EU General Data Protection Regulation), you may have the right to access, correct, or delete personal information we hold about you. Since the only personal information we can hold is a waitlist email address, exercising these rights is simple: email <a href="mailto:damian@nullberry.dev">damian@nullberry.dev</a> from the address in question and tell us what you want done. We will confirm within 30 days.</p>
+
+      <h2>9. Do Not Track and Global Privacy Control</h2>
+      <p>The Site does not track visitors, so "Do Not Track" and Global Privacy Control signals are honored by default; there is no tracking to disable.</p>
+
+      <h2>10. Data Security and Retention</h2>
+      <p>Waitlist addresses are stored with access limited to Nullberry personnel who need them to send product updates. We retain them until you unsubscribe, request deletion, or the waitlist purpose is fulfilled and the list is retired.</p>
+
+      <h2>11. Changes to This Policy</h2>
+      <p>If the Site's data practices change (for example, adding analytics or an order system), this policy will be updated and the effective date revised before those changes take effect. Material changes affecting waitlist subscribers will be announced by email.</p>
+
+      <h2>12. Contact</h2>
+      <p>Nullberry LLC, Simi Valley, California<br>
+      <a href="mailto:damian@nullberry.dev">damian@nullberry.dev</a></p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p class="footer-legal">&copy; 2026 Nullberry LLC. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="index.html">nullberry.dev</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
