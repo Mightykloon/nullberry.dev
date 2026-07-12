@@ -1,606 +1,1314 @@
-const { useState, useEffect, useRef, useCallback } = React;
-// ============================================================
-// NULLBERRY OS — MARK-0 CONCEPTUAL PROTOTYPE
-// ============================================================
-const COLORS = {
-  bg: "#0a0a0a",
-  surface: "#141414",
-  surface2: "#1c1c1c",
-  surface3: "#252525",
-  border: "#2a2a2a",
-  text: "#e8e8e8",
-  textDim: "#888888",
-  textMuted: "#555555",
-  accent: "#c77dff",
-  accentDim: "#9d5ce820",
-  warning: "#f59e0b",
-  danger: "#ef4444",
-  info: "#60a5fa",
-};
-const FONT = "'JetBrains Mono', 'SF Mono', 'Fira Code', monospace";
-const SANS = "'DM Sans', 'SF Pro', system-ui, sans-serif";
-// ============================================================
-// ICONS (inline SVG for zero dependencies)
-// ============================================================
-const Icon = ({ name, size = 20, color = COLORS.text }) => {
-  const icons = {
-    lock: <path d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zm-7-7a4 4 0 00-4 4v4h8V8a4 4 0 00-4-4z" fill="none" stroke={color} strokeWidth="1.5"/>,
-    message: <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" fill="none" stroke={color} strokeWidth="1.5"/>,
-    map: <><circle cx="12" cy="10" r="3" fill="none" stroke={color} strokeWidth="1.5"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    radio: <><circle cx="12" cy="12" r="2" fill={color}/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    leaf: <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66L7 19c4-4 8-4 12-7 0 0 1-4-2-11z" fill="none" stroke={color} strokeWidth="1.5"/>,
-    book: <path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5V5.5A2.5 2.5 0 016.5 3H20v14" fill="none" stroke={color} strokeWidth="1.5"/>,
-    settings: <><circle cx="12" cy="12" r="3" fill="none" stroke={color} strokeWidth="1.5"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    send: <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" fill="none" stroke={color} strokeWidth="1.5"/>,
-    back: <path d="M19 12H5m7-7l-7 7 7 7" fill="none" stroke={color} strokeWidth="1.5"/>,
-    mic: <><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="none" stroke={color} strokeWidth="1.5"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    search: <><circle cx="11" cy="11" r="8" fill="none" stroke={color} strokeWidth="1.5"/><path d="M21 21l-4.35-4.35" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    nav: <path d="M3 11l19-9-9 19-2-8-8-2z" fill="none" stroke={color} strokeWidth="1.5"/>,
-    wifi: <path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01" fill="none" stroke={color} strokeWidth="1.5"/>,
-    battery: <><rect x="1" y="6" width="18" height="12" rx="2" fill="none" stroke={color} strokeWidth="1.5"/><path d="M23 10v4" stroke={color} strokeWidth="1.5"/><rect x="3" y="8" width="10" height="8" rx="1" fill={COLORS.accent} opacity="0.6"/></>,
-    plus: <path d="M12 5v14m-7-7h14" fill="none" stroke={color} strokeWidth="1.5"/>,
-    walking: <><circle cx="12" cy="5" r="2" fill="none" stroke={color} strokeWidth="1.5"/><path d="M10 22l2-7 4 3v6M14 13l-2-2-4 4" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    car: <path d="M5 17h14M7 11l1.5-4.5h7L17 11M5 17a2 2 0 01-2-2v-2a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 01-2 2M7 17a1 1 0 11-2 0 1 1 0 012 0zm12 0a1 1 0 11-2 0 1 1 0 012 0z" fill="none" stroke={color} strokeWidth="1.5"/>,
-    bike: <><circle cx="5.5" cy="17.5" r="3.5" fill="none" stroke={color} strokeWidth="1.5"/><circle cx="18.5" cy="17.5" r="3.5" fill="none" stroke={color} strokeWidth="1.5"/><path d="M15 6a1 1 0 100-2 1 1 0 000 2zm-3 11.5V14l-3-3 4-3 2 3h3" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    hike: <path d="M13 4v16m-5-8l5-4 5 4M3 20l5-8 5 8 5-8 2 4" fill="none" stroke={color} strokeWidth="1.5"/>,
-    ai: <><path d="M12 2L2 7l10 5 10-5-10-5z" fill="none" stroke={color} strokeWidth="1.5"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke={color} strokeWidth="1.5"/></>,
-    waypoint: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" fill="none" stroke={color} strokeWidth="1.5"/><circle cx="12" cy="10" r="3" fill={color} opacity="0.4"/></>,
-  };
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none">{icons[name]}</svg>;
-};
-// ============================================================
-// MOCK DATA
-// ============================================================
-const MOCK_NODES = [
-  { id: 1, name: "Seed Alpha", type: "seed", lat: 34.2694, lng: -118.7815, battery: 87, signal: -68, status: "online", lastSeen: "now" },
-  { id: 2, name: "Seed Beta", type: "seed", lat: 34.2734, lng: -118.7725, battery: 64, signal: -82, status: "online", lastSeen: "2m ago" },
-  { id: 3, name: "Stem Garden", type: "stem", lat: 34.2650, lng: -118.7900, battery: 92, signal: -55, status: "online", lastSeen: "now" },
-  { id: 4, name: "Trunk Rooftop", type: "trunk", lat: 34.2800, lng: -118.7600, battery: 78, signal: -42, status: "online", lastSeen: "now" },
-  { id: 5, name: "Seed Charlie", type: "seed", lat: 34.2580, lng: -118.7950, battery: 12, signal: -95, status: "low battery", lastSeen: "15m ago" },
-];
-const MOCK_CONTACTS = [
-  { id: 1, name: "Yahaira", lastMsg: "just deployed the third seed", time: "2m", unread: 2, online: true },
-  { id: 2, name: "Marcus", lastMsg: "trunk is live on oak ridge", time: "18m", unread: 0, online: true },
-  { id: 3, name: "Relay:Stem-Garden", lastMsg: "[telemetry] batt 92% / solar 340mA", time: "5m", unread: 0, online: true },
-  { id: 4, name: "Ava", lastMsg: "can you check the node on elm st?", time: "1h", unread: 1, online: false },
-];
-const MOCK_MESSAGES = [
-  { from: "them", text: "hey are you on the bush?", time: "10:41" },
-  { from: "me", text: "yeah just booted up. 3 seeds and the trunk are live", time: "10:42" },
-  { from: "them", text: "nice. i can see your nodes from here", time: "10:42" },
-  { from: "them", text: "just deployed the third seed", time: "10:44" },
-];
-const TRANSPORT_STATUS = [
-  { name: "LoRa 915", status: "active", icon: "radio" },
-  { name: "LoRa 433", status: "active", icon: "radio" },
-  { name: "WiFi", status: "standby", icon: "wifi" },
-  { name: "BLE", status: "standby", icon: "radio" },
-  { name: "IR", status: "ready", icon: "radio" },
-  { name: "Acoustic", status: "ready", icon: "mic" },
-  { name: "USB", status: "disconnected", icon: "radio" },
-];
-// ============================================================
-// COMPONENTS
-// ============================================================
-const StatusBar = ({ time }) => (
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 16px", background: COLORS.bg, fontFamily: FONT, fontSize: 11, color: COLORS.textDim, borderBottom: `1px solid ${COLORS.border}`, flexShrink: 0 }}>
-    <span>{time}</span>
-    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-      <span style={{ color: COLORS.accent, fontSize: 10 }}>BUSH</span>
-      <span style={{ color: COLORS.accent, fontWeight: 700 }}>4</span>
-      <span style={{ color: COLORS.textMuted }}>|</span>
-      <span style={{ fontSize: 10, color: COLORS.textDim }}>GPS</span>
-      <Icon name="battery" size={16} color={COLORS.accent} />
-    </div>
-  </div>
-);
-const NavBar = ({ active, onNav }) => {
-  const items = [
-    { id: "messages", icon: "message", label: "Messages" },
-    { id: "map", icon: "map", label: "Map" },
-    { id: "bush", icon: "leaf", label: "Bush" },
-    { id: "knowledge", icon: "book", label: "Know" },
-    { id: "settings", icon: "settings", label: "Settings" },
-  ];
-  return (
-    <div style={{ display: "flex", justifyContent: "space-around", padding: "8px 0 12px", background: COLORS.surface, borderTop: `1px solid ${COLORS.border}`, flexShrink: 0 }}>
-      {items.map(item => (
-        <button key={item.id} onClick={() => onNav(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 12px" }}>
-          <Icon name={item.icon} size={20} color={active === item.id ? COLORS.accent : COLORS.textMuted} />
-          <span style={{ fontFamily: SANS, fontSize: 9, color: active === item.id ? COLORS.accent : COLORS.textMuted, fontWeight: active === item.id ? 600 : 400, letterSpacing: 0.5 }}>{item.label}</span>
-        </button>
-      ))}
-    </div>
-  );
-};
-const BackHeader = ({ title, onBack, right }) => (
-  <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", gap: 12, borderBottom: `1px solid ${COLORS.border}`, flexShrink: 0 }}>
-    <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><Icon name="back" size={18} color={COLORS.textDim} /></button>
-    <span style={{ fontFamily: SANS, fontSize: 16, fontWeight: 600, color: COLORS.text, flex: 1 }}>{title}</span>
-    {right}
-  </div>
-);
-// ============================================================
-// LOCK SCREEN
-// ============================================================
-const LockScreen = ({ onUnlock }) => {
-  const [pin, setPin] = useState("");
-  const [error, setError] = useState(false);
-  const handleKey = (k) => {
-    if (k === "del") { setPin(p => p.slice(0, -1)); setError(false); return; }
-    const next = pin + k;
-    if (next.length <= 6) setPin(next);
-    if (next.length === 4) {
-      setTimeout(() => onUnlock(), 200);
-    }
-  };
-  const keys = ["1","2","3","4","5","6","7","8","9","","0","del"];
-  return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: COLORS.bg, fontFamily: SANS, padding: 24 }}>
-      <div style={{ fontSize: 11, letterSpacing: 4, color: COLORS.textMuted, textTransform: "uppercase", marginBottom: 8 }}>Nullberry OS</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color: COLORS.text, marginBottom: 4, fontFamily: FONT }}>MARK-1</div>
-      <div style={{ fontSize: 12, color: COLORS.textDim, marginBottom: 40 }}>enter pin to unlock</div>
-      <div style={{ display: "flex", gap: 12, marginBottom: 40 }}>
-        {[0,1,2,3].map(i => (
-          <div key={i} style={{ width: 14, height: 14, borderRadius: 7, border: `2px solid ${pin.length > i ? COLORS.accent : COLORS.border}`, background: pin.length > i ? COLORS.accent : "transparent", transition: "all 0.15s" }} />
-        ))}
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 64px)", gap: 12 }}>
-        {keys.map((k, i) => (
-          <button key={i} onClick={() => k && handleKey(k)} style={{ width: 64, height: 52, borderRadius: 12, border: k ? `1px solid ${COLORS.border}` : "none", background: k ? COLORS.surface2 : "transparent", color: k === "del" ? COLORS.textDim : COLORS.text, fontFamily: k === "del" ? SANS : FONT, fontSize: k === "del" ? 12 : 20, fontWeight: 500, cursor: k ? "pointer" : "default", transition: "background 0.1s" }}>
-            {k === "del" ? "\u2190" : k}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
-// ============================================================
-// MESSAGES
-// ============================================================
-const MessagesScreen = ({ onOpenChat }) => (
-  <div style={{ flex: 1, overflow: "auto" }}>
-    <div style={{ padding: "16px 16px 8px", fontFamily: SANS, fontSize: 22, fontWeight: 700, color: COLORS.text }}>Messages</div>
-    <div style={{ padding: "8px 16px 12px" }}>
-      <div style={{ display: "flex", alignItems: "center", background: COLORS.surface2, borderRadius: 10, padding: "8px 12px", gap: 8 }}>
-        <Icon name="search" size={16} color={COLORS.textMuted} />
-        <span style={{ fontFamily: SANS, fontSize: 13, color: COLORS.textMuted }}>search messages</span>
-      </div>
-    </div>
-    {MOCK_CONTACTS.map(c => (
-      <button key={c.id} onClick={() => onOpenChat(c)} style={{ display: "flex", width: "100%", padding: "12px 16px", gap: 12, alignItems: "center", background: "none", border: "none", borderBottom: `1px solid ${COLORS.border}`, cursor: "pointer", textAlign: "left" }}>
-        <div style={{ width: 40, height: 40, borderRadius: 20, background: c.online ? COLORS.accentDim : COLORS.surface3, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${c.online ? COLORS.accent : COLORS.border}`, flexShrink: 0 }}>
-          <span style={{ fontFamily: FONT, fontSize: 14, color: c.online ? COLORS.accent : COLORS.textDim }}>{c.name[0]}</span>
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-            <span style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, color: COLORS.text }}>{c.name}</span>
-            <span style={{ fontFamily: FONT, fontSize: 10, color: COLORS.textMuted }}>{c.time}</span>
-          </div>
-          <div style={{ fontFamily: SANS, fontSize: 12, color: COLORS.textDim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.lastMsg}</div>
-        </div>
-        {c.unread > 0 && <div style={{ width: 20, height: 20, borderRadius: 10, background: COLORS.accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: FONT, fontSize: 10, color: COLORS.bg, fontWeight: 700 }}>{c.unread}</span></div>}
-      </button>
-    ))}
-  </div>
-);
-const ChatScreen = ({ contact, onBack }) => {
-  const [msg, setMsg] = useState("");
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
-  const endRef = useRef(null);
-  useEffect(() => { endRef.current?.scrollIntoView(); }, [messages]);
-  const handleSend = () => {
-    if (!msg.trim()) return;
-    setMessages(prev => [...prev, { from: "me", text: msg.trim(), time: new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) }]);
-    setMsg("");
-  };
-  return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <BackHeader title={contact.name} onBack={onBack} right={
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <div style={{ width: 6, height: 6, borderRadius: 3, background: contact.online ? COLORS.accent : COLORS.textMuted }} />
-          <span style={{ fontFamily: FONT, fontSize: 10, color: contact.online ? COLORS.accent : COLORS.textMuted }}>{contact.online ? "on bush" : "offline"}</span>
-        </div>
-      } />
-      <div style={{ flex: 1, overflow: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontFamily: FONT, fontSize: 10, color: COLORS.textMuted, textAlign: "center", padding: "8px 0" }}>end-to-end encrypted via NullRNS</div>
-        {messages.map((m, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: m.from === "me" ? "flex-end" : "flex-start" }}>
-            <div style={{ maxWidth: "75%", padding: "8px 12px", borderRadius: 14, background: m.from === "me" ? COLORS.accent : COLORS.surface3, color: m.from === "me" ? COLORS.bg : COLORS.text, fontFamily: SANS, fontSize: 13, lineHeight: 1.4, borderBottomRightRadius: m.from === "me" ? 4 : 14, borderBottomLeftRadius: m.from === "me" ? 14 : 4 }}>
-              {m.text}
-              <div style={{ fontSize: 9, color: m.from === "me" ? "rgba(0,0,0,0.4)" : COLORS.textMuted, textAlign: "right", marginTop: 2, fontFamily: FONT }}>{m.time}</div>
-            </div>
-          </div>
-        ))}
-        <div ref={endRef} />
-      </div>
-      <div style={{ display: "flex", padding: "8px 12px", gap: 8, borderTop: `1px solid ${COLORS.border}`, alignItems: "center", flexShrink: 0 }}>
-        <button style={{ background: COLORS.surface3, border: "none", borderRadius: 20, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}><Icon name="mic" size={16} color={COLORS.textDim} /></button>
-        <input value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()} placeholder="message..." style={{ flex: 1, background: COLORS.surface2, border: `1px solid ${COLORS.border}`, borderRadius: 20, padding: "8px 14px", color: COLORS.text, fontFamily: SANS, fontSize: 13, outline: "none" }} />
-        <button onClick={handleSend} style={{ background: msg.trim() ? COLORS.accent : COLORS.surface3, border: "none", borderRadius: 20, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "background 0.15s" }}><Icon name="send" size={16} color={msg.trim() ? COLORS.bg : COLORS.textMuted} /></button>
-      </div>
-    </div>
-  );
-};
-// ============================================================
-// MAP
-// ============================================================
-const MapScreen = () => {
-  const canvasRef = useRef(null);
-  const [routeMode, setRouteMode] = useState(null);
-  const [waypoints, setWaypoints] = useState([
-    { name: "Home Base", x: 0.5, y: 0.45 },
-    { name: "Observation Point", x: 0.72, y: 0.28 },
-  ]);
-  const [selectedNode, setSelectedNode] = useState(null);
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+/* ============================================================
+   NULLBERRY LIVE DEMOS
+   1) MARK-1 hardware · Nullberry OS (GrapheneOS-inspired,
+      sharp full-screen slab, no notch)
+   2) iPhone · iOS companion app (Liquid-Glass styling,
+      dynamic island, relay-address contacts)
+   Everything runs in-browser. Nothing is transmitted.
+   ============================================================ */
+
+/* ---------- utils ---------- */
+const rnd = (a, b) => a + Math.random() * (b - a);
+const irnd = (a, b) => Math.round(rnd(a, b));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = (arr) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const SPRING = "cubic-bezier(0.32, 0.72, 0, 1)";
+const IOS_FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif";
+const DROID_FONT = "'Inter', Roboto, 'Segoe UI', sans-serif";
+const MONO = "'JetBrains Mono', 'SF Mono', Consolas, monospace";
+const CYAN = "#38d4f5";
+
+const relayAddr = () => "relay" + Math.random().toString(36).slice(2, 12) + "@nullberrysecure.net";
+
+function useNow(intervalMs) {
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width = canvas.offsetWidth * 2;
-    const h = canvas.height = canvas.offsetHeight * 2;
-    ctx.scale(2, 2);
-    const dw = w / 2, dh = h / 2;
-    // dark map background
-    ctx.fillStyle = "#0d1117";
-    ctx.fillRect(0, 0, dw, dh);
-    // grid
-    ctx.strokeStyle = "#1a2332";
-    ctx.lineWidth = 0.5;
-    for (let x = 0; x < dw; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, dh); ctx.stroke(); }
-    for (let y = 0; y < dh; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(dw, y); ctx.stroke(); }
-    // roads
-    ctx.strokeStyle = "#1e2d3d";
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(0, dh*0.4); ctx.lineTo(dw, dh*0.42); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(dw*0.3, 0); ctx.lineTo(dw*0.32, dh); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, dh*0.7); ctx.quadraticCurveTo(dw*0.5, dh*0.65, dw, dh*0.72); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(dw*0.6, 0); ctx.quadraticCurveTo(dw*0.58, dh*0.5, dw*0.65, dh); ctx.stroke();
-    ctx.strokeStyle = "#253545";
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(0, dh*0.55); ctx.quadraticCurveTo(dw*0.4, dh*0.5, dw, dh*0.53); ctx.stroke();
-    // terrain shading
-    ctx.fillStyle = "rgba(34,197,94,0.03)";
-    ctx.beginPath(); ctx.ellipse(dw*0.2, dh*0.25, 80, 60, 0, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(dw*0.75, dh*0.7, 60, 45, 0.3, 0, Math.PI*2); ctx.fill();
-    // route (if mode selected)
-    if (routeMode) {
-      ctx.strokeStyle = COLORS.accent;
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([6, 4]);
-      ctx.beginPath();
-      ctx.moveTo(dw*0.5, dh*0.45);
-      ctx.quadraticCurveTo(dw*0.55, dh*0.38, dw*0.62, dh*0.35);
-      ctx.quadraticCurveTo(dw*0.68, dh*0.32, dw*0.72, dh*0.28);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    // mesh lines between nodes
-    const nodePositions = MOCK_NODES.map(n => ({ x: ((n.lng + 118.8) / 0.05) * dw, y: ((34.285 - n.lat) / 0.035) * dh }));
-    ctx.strokeStyle = "rgba(74,222,128,0.12)";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < nodePositions.length; i++) {
-      for (let j = i+1; j < nodePositions.length; j++) {
-        const dx = nodePositions[i].x - nodePositions[j].x;
-        const dy = nodePositions[i].y - nodePositions[j].y;
-        if (Math.sqrt(dx*dx+dy*dy) < dw*0.5) {
-          ctx.beginPath(); ctx.moveTo(nodePositions[i].x, nodePositions[i].y); ctx.lineTo(nodePositions[j].x, nodePositions[j].y); ctx.stroke();
-        }
-      }
-    }
-    // node markers
-    MOCK_NODES.forEach((n, idx) => {
-      const pos = nodePositions[idx];
-      const colors = { seed: "#4ade80", stem: "#60a5fa", trunk: "#f59e0b" };
-      const sizes = { seed: 5, stem: 7, trunk: 9 };
-      const c = colors[n.type];
-      const s = sizes[n.type];
-      // pulse ring
-      ctx.beginPath(); ctx.arc(pos.x, pos.y, s + 6, 0, Math.PI*2);
-      ctx.fillStyle = c + "15"; ctx.fill();
-      // dot
-      ctx.beginPath(); ctx.arc(pos.x, pos.y, s, 0, Math.PI*2);
-      ctx.fillStyle = c; ctx.fill();
-      ctx.strokeStyle = "#0d1117"; ctx.lineWidth = 1.5; ctx.stroke();
+    const t = setInterval(() => setNow(new Date()), intervalMs || 15000);
+    return () => clearInterval(t);
+  }, [intervalMs]);
+  return now;
+}
+const fmtTime = (d) => { let h = d.getHours() % 12; if (h === 0) h = 12; return h + ":" + String(d.getMinutes()).padStart(2, "0"); };
+
+/* ---------- shared mesh data ---------- */
+const NAME_POOL = ["Yahaira", "Marcus", "Priya", "Diego", "Wren", "Sofia", "Elias", "June", "Theo", "Amara", "Nikolai", "Rosa", "Caleb", "Ingrid", "Mateo", "Zoe"];
+const AVATAR_HUES = [198, 262, 12, 152, 32, 330, 210, 88];
+
+const SCRIPTS = [
+  [
+    { d: "in", t: "third seed is up on the ridge, mesh picked it up instantly" },
+    { d: "out", t: "nice. what's the hop count back to camp?" },
+    { d: "in", t: "two hops through the garden stem. RSSI −71" },
+    { d: "out", t: "perfect. drop the last one by the creek crossing" },
+    { d: "in", t: "on my way now 🌲" },
+  ],
+  [
+    { d: "in", t: "storm cell moving in from the west, maybe 40 min out" },
+    { d: "out", t: "copy. everyone's checked in except the north team" },
+    { d: "in", t: "they pinged the trunk 10 min ago, still moving" },
+    { d: "out", t: "ok. switching to reduced signature until it passes" },
+    { d: "in", t: "smart. see you at the shelter" },
+  ],
+  [
+    { d: "out", t: "supply list for tomorrow: LiFePO4 packs, antenna wire, zip ties" },
+    { d: "in", t: "add a spare telescoping mast, the garden one is bent" },
+    { d: "out", t: "noted. anything else?" },
+    { d: "in", t: "coffee. lots of coffee ☕" },
+  ],
+  [
+    { d: "in", t: "you seeing the latency on L2? feels snappier since the update" },
+    { d: "out", t: "yeah, new routing weights. 433 gets preference through the tree line" },
+    { d: "in", t: "penetration is unreal, i'm getting packets from inside the barn" },
+    { d: "out", t: "that's the whole point 😄" },
+  ],
+  [
+    { d: "in", t: "ETA 25 min, coming up the fire road" },
+    { d: "out", t: "copy. gate's unlocked, follow the seed trail in" },
+    { d: "in", t: "my map shows every node on the way, this is so cool" },
+  ],
+  [
+    { d: "out", t: "angle the yagi about 10° east, root site says signal is drifting" },
+    { d: "in", t: "adjusting now" },
+    { d: "in", t: "−63 dBm. best we've had all week" },
+    { d: "out", t: "lock it down. that's our backbone link" },
+  ],
+  [
+    { d: "in", t: "morning check: all 4 seeds green, stem battery 82%" },
+    { d: "out", t: "any packet loss overnight?" },
+    { d: "in", t: "0.3% on L1, nothing on L2. dead drop cache is empty" },
+    { d: "out", t: "beautiful. quiet night on the bush" },
+  ],
+];
+
+const REPLIES = ["copy that", "on it", "got it, relaying now", "👍", "roger", "signal's clean on L1", "will do", "ack. mesh looks healthy", "received, 2 hops", "sounds good"];
+const TIMES = ["2m", "11m", "26m", "1h", "3h", "Yesterday", "Yesterday"];
+
+function genContacts() {
+  const names = shuffle(NAME_POOL).slice(0, SCRIPTS.length);
+  const scripts = shuffle(SCRIPTS);
+  return names.map((name, i) => ({
+    id: "c" + i,
+    name,
+    addr: relayAddr(),
+    hue: AVATAR_HUES[i % AVATAR_HUES.length],
+    time: TIMES[i % TIMES.length],
+    unread: i < 2 ? irnd(1, 3) : 0,
+    route: pick(["L1 LoRa 915", "L2 LoRa 433", "L3 WiFi", "L4 BLE"]),
+    hops: irnd(1, 4),
+    msgs: scripts[i].map((m, j) => ({ id: "m" + i + "_" + j, d: m.d, t: m.t })),
+  }));
+}
+
+const NODE_TYPES = { seed: { c: "#30d158", label: "Seed" }, stem: { c: "#60a5fa", label: "Stem" }, trunk: { c: "#ff9f0a", label: "Trunk" }, root: { c: CYAN, label: "Root" } };
+const NODE_SPOTS = ["Ridge", "Garden", "Creek", "Barn", "Gate", "Meadow", "Oak", "North", "Well", "Quarry", "Bluff"];
+
+function genNodes() {
+  const spots = shuffle(NODE_SPOTS);
+  const mk = (type, i, dist) => ({
+    id: NODE_TYPES[type].label + "·" + spots[i],
+    type,
+    batt: type === "root" ? 100 : irnd(41, 98),
+    rssi: irnd(-96, -58),
+    hops: type === "root" ? 0 : irnd(1, 4),
+    seen: irnd(1, 40),
+    online: Math.random() > 0.12,
+    angle: rnd(0, Math.PI * 2),
+    dist: dist || rnd(0.25, 1),
+  });
+  const nodes = [];
+  for (let i = 0; i < 5; i++) nodes.push(mk("seed", i));
+  for (let i = 5; i < 8; i++) nodes.push(mk("stem", i));
+  nodes.push(mk("trunk", 8));
+  nodes.push({ ...mk("root", 9, 0.95), online: true });
+  return nodes;
+}
+
+const FEED_TPL = [
+  (n) => `${n.id} relayed ${irnd(2, 14)} packets`,
+  (n) => `ping ${n.id} → ${irnd(38, 420)}ms`,
+  (n) => `${n.id} solar +${rnd(0.4, 2.1).toFixed(1)}W`,
+  (n) => `route recalc via ${n.id}`,
+  (n) => `L${irnd(1, 4)} fallback drill passed on ${n.id}`,
+  () => `mesh key rotation complete`,
+];
+
+/* shared hooks: telemetry drift + feed */
+function useMesh() {
+  const [nodes, setNodes] = useState(genNodes);
+  const [feed, setFeed] = useState([]);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setNodes(ns => ns.map(n => ({
+        ...n,
+        batt: n.type === "root" ? 100 : clamp(n.batt + rnd(-0.5, 0.65), 8, 100),
+        rssi: clamp(Math.round(n.rssi + rnd(-3, 3)), -104, -52),
+        seen: Math.random() < 0.3 ? irnd(0, 4) : n.seen + 3,
+        online: Math.random() < 0.985 ? n.online : !n.online,
+      })));
+    }, 3000);
+    return () => clearInterval(t);
+  }, []);
+  useEffect(() => {
+    const push = () => setFeed(f => {
+      const d = new Date();
+      const entry = { id: Date.now() + Math.random(), time: fmtTime(d), text: pick(FEED_TPL)({ id: pick(NODE_SPOTS) ? pick(["Seed·Ridge", "Stem·Garden", "Seed·Creek", "Trunk·Oak", "Seed·Gate", "Root·West"]) : "" }) };
+      return [entry, ...f].slice(0, 7);
     });
-    // waypoints
-    waypoints.forEach(wp => {
-      const px = wp.x * dw, py = wp.y * dh;
-      ctx.fillStyle = COLORS.danger;
-      ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = "#0d1117"; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = COLORS.danger + "30";
-      ctx.beginPath(); ctx.arc(px, py, 12, 0, Math.PI*2); ctx.fill();
-      ctx.font = `9px ${SANS}`;
-      ctx.fillStyle = COLORS.text;
-      ctx.textAlign = "center";
-      ctx.fillText(wp.name, px, py - 14);
-    });
-    // my position
-    ctx.fillStyle = COLORS.accent;
-    ctx.beginPath(); ctx.arc(dw*0.5, dh*0.45, 6, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = "#0d1117"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = COLORS.accent + "20";
-    ctx.beginPath(); ctx.arc(dw*0.5, dh*0.45, 20, 0, Math.PI*2); ctx.fill();
-    // compass
-    ctx.fillStyle = COLORS.text;
-    ctx.font = `bold 10px ${FONT}`;
-    ctx.textAlign = "center";
-    ctx.fillText("N", dw - 20, 18);
-    ctx.strokeStyle = COLORS.textMuted;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(dw-20, 22); ctx.lineTo(dw-20, 32); ctx.stroke();
-  }, [routeMode, waypoints]);
-  const modes = [
-    { id: "drive", icon: "car", label: "Drive" },
-    { id: "walk", icon: "walking", label: "Walk" },
-    { id: "bike", icon: "bike", label: "Bike" },
-    { id: "hike", icon: "hike", label: "Hike" },
-  ];
+    push(); push(); push();
+    const t = setInterval(push, 4600);
+    return () => clearInterval(t);
+  }, []);
+  return [nodes, feed];
+}
+
+/* messaging behavior shared by both demos */
+function useConvos(notify) {
+  const [contacts, setContacts] = useState(genContacts);
+  const openConvo = (id) => setContacts(cs => cs.map(c => c.id === id ? { ...c, unread: 0 } : c));
+  const send = (cid, text) => {
+    setContacts(cs => cs.map(c => c.id === cid ? { ...c, time: "now", msgs: [...c.msgs, { id: "u" + Date.now(), d: "out", t: text }] } : c));
+    setTimeout(() => setContacts(cs => cs.map(c => c.id === cid ? { ...c, typing: true } : c)), 900);
+    setTimeout(() => {
+      const reply = pick(REPLIES);
+      setContacts(cs => cs.map(c => c.id === cid ? { ...c, typing: false, time: "now", msgs: [...c.msgs, { id: "r" + Date.now(), d: "in", t: reply }] } : c));
+      if (notify) notify(cid, reply);
+    }, 2600);
+  };
+  return [contacts, setContacts, openConvo, send];
+}
+
+/* ---------- svg glyphs (stroke) ---------- */
+const Icon = ({ d, size = 22, color = "currentColor", sw = 1.8, fill = "none", style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={style}>
+    {d.map((p, i) => <path key={i} d={p} />)}
+  </svg>
+);
+const P = {
+  msg: ["M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"],
+  bush: ["M12 4v7", "M12 11l-4.5 4.5", "M12 11l4.5 4.5", "M5.5 17.5h.01", "M18.5 17.5h.01", "M12 20h.01", "M12 4h.01"],
+  map: ["M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z", "M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
+  gear: ["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"],
+  term: ["M4 17l6-5-6-5", "M12 19h8"],
+  back: ["M15 18l-6-6 6-6"],
+  send: ["M12 19V5", "M5 12l7-7 7 7"],
+  video: ["M23 7l-7 5 7 5V7z", "M14 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"],
+  phone: ["M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"],
+  info: ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", "M12 16v-4", "M12 8h.01"],
+  shield: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"],
+  rotate: ["M23 4v6h-6", "M20.49 15a9 9 0 1 1-2.12-9.36L23 10"],
+  battery: ["M3 7h13a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z", "M22 11v2"],
+  locate: ["M12 2v3", "M12 19v3", "M2 12h3", "M19 12h3", "M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"],
+};
+
+/* ---------- status hardware widgets ---------- */
+const SignalBars = ({ color }) => (
+  <svg width="17" height="11" viewBox="0 0 18 11">
+    {[0, 1, 2, 3].map((i) => (
+      <rect key={i} x={i * 4.6} y={10 - (4 + i * 2)} width="3.2" height={4 + i * 2} rx="1" fill={color} opacity={i < 3 ? 1 : 0.35} />
+    ))}
+  </svg>
+);
+const WifiIcon = ({ color, size = 16 }) => (
+  <svg width={size} height={size * 0.7} viewBox="0 0 24 17" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round">
+    <path d="M2 5.5a15 15 0 0 1 20 0" opacity="0.9" />
+    <path d="M5.5 9.5a10 10 0 0 1 13 0" />
+    <path d="M9 13.2a5 5 0 0 1 6 0" />
+    <circle cx="12" cy="16" r="0.6" fill={color} stroke="none" />
+  </svg>
+);
+const BatteryIcon = ({ pct, color }) => (
+  <svg width="25" height="12" viewBox="0 0 25 12">
+    <rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke={color} opacity="0.4" />
+    <rect x="2" y="2" width={18 * clamp(pct, 0, 100) / 100} height="8" rx="1.6" fill={pct <= 20 ? "#ff453a" : color} />
+    <path d="M23 4v4c1 0 1.6-.8 1.6-2S24 4 23 4z" fill={color} opacity="0.4" />
+  </svg>
+);
+
+const Avatar = ({ name, hue, size = 44 }) => (
+  <div style={{
+    width: size, height: size, borderRadius: size / 2, flexShrink: 0,
+    background: `linear-gradient(160deg, hsl(${hue} 60% 55%), hsl(${hue} 65% 38%))`,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    color: "#fff", fontFamily: IOS_FONT, fontWeight: 600, fontSize: size * 0.4,
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25)",
+  }}>
+    {name.split(" ").map(w => w[0]).slice(0, 2).join("")}
+  </div>
+);
+
+/* ════════════════════════════════════════════════════════════
+   DEMO 1 — MARK-1 · NULLBERRY OS  (GrapheneOS-inspired)
+   ════════════════════════════════════════════════════════════ */
+const G_DARK = {
+  name: "dark", bg: "#000000", surface: "#111214", surface2: "#1b1d20",
+  text: "#e8eaed", text2: "#9aa0a6", text3: "#5f6368",
+  sep: "rgba(255,255,255,0.09)", accent: CYAN, ok: "#30d158",
+  warn: "#fdd663", danger: "#f28b82", key: "rgba(255,255,255,0.07)",
+};
+const G_LIGHT = {
+  name: "light", bg: "#e9ebee", surface: "#ffffff", surface2: "#f1f3f4",
+  text: "#17181a", text2: "#5f6368", text3: "#9aa0a6",
+  sep: "rgba(0,0,0,0.1)", accent: "#0b93b4", ok: "#188038",
+  warn: "#b05a00", danger: "#c5221f", key: "rgba(0,0,0,0.06)",
+};
+
+function GStatus({ th, batt }) {
+  const now = useNow(5000);
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
-      <div style={{ padding: "12px 16px 8px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-        <span style={{ fontFamily: SANS, fontSize: 18, fontWeight: 700, color: COLORS.text }}>Map</span>
-        <div style={{ display: "flex", gap: 4 }}>
-          <button onClick={() => {}} style={{ background: COLORS.surface2, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: "4px 10px", fontFamily: FONT, fontSize: 10, color: COLORS.accent, cursor: "pointer" }}>+ waypoint</button>
-        </div>
+    <div style={{ height: 34, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px", fontFamily: DROID_FONT, position: "relative", zIndex: 40 }}>
+      <span style={{ fontSize: 12.5, fontWeight: 600, color: th.text }}>{fmtTime(now)}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <Icon d={P.bush} size={13} color={th.accent} sw={2} />
+        <SignalBars color={th.text} />
+        <span style={{ fontSize: 10.5, fontWeight: 600, color: th.text2, fontFamily: MONO }}>{Math.round(batt)}%</span>
+        <BatteryIcon pct={batt} color={th.text} />
       </div>
-      {/* route mode selector */}
-      <div style={{ display: "flex", padding: "0 16px 8px", gap: 6, flexShrink: 0 }}>
-        {modes.map(m => (
-          <button key={m.id} onClick={() => setRouteMode(routeMode === m.id ? null : m.id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "6px 0", borderRadius: 8, border: `1px solid ${routeMode === m.id ? COLORS.accent : COLORS.border}`, background: routeMode === m.id ? COLORS.accentDim : COLORS.surface2, cursor: "pointer" }}>
-            <Icon name={m.icon} size={14} color={routeMode === m.id ? COLORS.accent : COLORS.textDim} />
-            <span style={{ fontFamily: SANS, fontSize: 9, color: routeMode === m.id ? COLORS.accent : COLORS.textDim }}>{m.label}</span>
+    </div>
+  );
+}
+
+function GLock({ th, onUnlock, unread }) {
+  const now = useNow(5000);
+  const [pin, setPin] = useState("");
+  const press = (n) => {
+    if (pin.length >= 4) return;
+    const next = pin + n;
+    setPin(next);
+    if (next.length === 4) setTimeout(onUnlock, 300);
+  };
+  return (
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: th.bg, zIndex: 30, fontFamily: DROID_FONT }}>
+      <div style={{ height: 34 }} />
+      <img src="assets/logo-white.svg" alt="Nullberry" style={{ height: 22, marginTop: 26, opacity: 0.9, filter: th.name === "light" ? "invert(1)" : "none" }} />
+      <div style={{ fontSize: 56, fontWeight: 300, letterSpacing: -1, color: th.text, marginTop: 18, lineHeight: 1, fontFamily: DROID_FONT }}>{fmtTime(now)}</div>
+      <div style={{ fontSize: 13, color: th.text2, marginTop: 6 }}>
+        {unread > 0 ? unread + " new mesh message" + (unread > 1 ? "s" : "") : "mesh connected"}
+      </div>
+      <div style={{ flex: 1 }} />
+      <div style={{ fontSize: 12, color: th.text3, marginBottom: 12 }}>Enter PIN — any 4 digits</div>
+      <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} style={{ width: 11, height: 11, borderRadius: 2, border: `1.4px solid ${th.text2}`, background: i < pin.length ? th.accent : "transparent", borderColor: i < pin.length ? th.accent : th.text2, transition: "all 0.15s" }} />
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 66px)", gap: 10, marginBottom: 26 }}>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, "⌫"].map((k, i) => k === null ? <div key={i} /> : (
+          <button key={i} onClick={() => k === "⌫" ? setPin(pin.slice(0, -1)) : press(String(k))}
+            style={{ width: 66, height: 54, borderRadius: 8, border: `1px solid ${th.sep}`, cursor: "pointer", background: th.key, color: th.text, fontSize: k === "⌫" ? 15 : 21, fontFamily: DROID_FONT, fontWeight: 400, transition: "background 0.15s" }}>
+            {k}
           </button>
         ))}
       </div>
-      {/* canvas map */}
-      <div style={{ flex: 1, position: "relative", margin: "0 8px 8px", borderRadius: 12, overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
-        <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
-        {routeMode && (
-          <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, background: COLORS.surface + "ee", borderRadius: 10, padding: "10px 14px", backdropFilter: "blur(8px)", border: `1px solid ${COLORS.border}` }}>
-            <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: COLORS.accent, marginBottom: 2 }}>Route to: Observation Point</div>
-            <div style={{ fontFamily: FONT, fontSize: 11, color: COLORS.textDim }}>1.3 mi · {routeMode === "drive" ? "4 min" : routeMode === "walk" ? "26 min" : routeMode === "bike" ? "9 min" : "32 min"} · {routeMode}</div>
+    </div>
+  );
+}
+
+const G_APPS = [
+  { id: "messages", label: "Messages", icon: P.msg },
+  { id: "bush", label: "Bush", icon: P.bush },
+  { id: "map", label: "Map", icon: P.map },
+  { id: "terminal", label: "Terminal", icon: P.term },
+  { id: "settings", label: "Settings", icon: P.gear },
+];
+
+function GLauncher({ th, onOpen, unread, nodesOnline }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, paddingTop: 34, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
+      <div style={{ margin: "16px 16px 8px", padding: "13px 15px", borderRadius: 10, background: th.surface, border: `1px solid ${th.sep}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
+          <div style={{ width: 6, height: 6, borderRadius: 3, background: th.ok, animation: "nbPulse 2s ease-in-out infinite" }} />
+          <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: 1.4, color: th.text2 }}>NULLBERRY BUSH</span>
+        </div>
+        <div style={{ fontSize: 14.5, fontWeight: 600, color: th.text }}>{nodesOnline} nodes online · all transports up</div>
+      </div>
+      <div style={{ flex: 1 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", rowGap: 26, padding: "0 22px 30px", justifyItems: "center" }}>
+        {G_APPS.map(app => (
+          <button key={app.id} onClick={() => onOpen(app.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: 0 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 28, background: th.surface2, border: `1px solid ${th.sep}`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", color: th.text }}>
+              <Icon d={app.icon} size={25} sw={1.6} />
+              {app.id === "messages" && unread > 0 && (
+                <div style={{ position: "absolute", top: -3, right: -3, minWidth: 17, height: 17, borderRadius: 9, background: th.accent, color: "#00252e", fontSize: 10.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</div>
+              )}
+            </div>
+            <span style={{ fontSize: 11, color: th.text2 }}>{app.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GHeader({ th, title, onBack, right }) {
+  return (
+    <div style={{ paddingTop: 34, background: th.bg, borderBottom: `1px solid ${th.sep}`, position: "relative", zIndex: 5 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px" }}>
+        {onBack && (
+          <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: th.text, display: "flex", padding: 0 }}>
+            <Icon d={P.back} size={21} sw={2} />
+          </button>
+        )}
+        <span style={{ fontFamily: DROID_FONT, fontWeight: 600, fontSize: 17, color: th.text, flex: 1 }}>{title}</span>
+        {right}
+      </div>
+    </div>
+  );
+}
+
+function GMessages({ th, contacts, openConvo, send }) {
+  const [activeId, setActiveId] = useState(null);
+  const [draft, setDraft] = useState("");
+  const scrollRef = useRef(null);
+  const active = contacts.find(c => c.id === activeId);
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [activeId, active && active.msgs.length, active && active.typing]);
+  return (
+    <div style={{ position: "absolute", inset: 0, background: th.bg, overflow: "hidden", fontFamily: DROID_FONT }}>
+      <div style={{ position: "absolute", inset: 0, transform: active ? "translateX(-24%)" : "none", transition: `transform 0.4s ${SPRING}`, display: "flex", flexDirection: "column" }}>
+        <GHeader th={th} title="Mesh Messages" right={<Icon d={P.shield} size={16} color={th.accent} sw={2} />} />
+        <div style={{ flex: 1, overflowY: "auto", paddingBottom: 40 }}>
+          {contacts.map(c => (
+            <button key={c.id} onClick={() => { openConvo(c.id); setActiveId(c.id); }} style={{ display: "flex", gap: 11, alignItems: "center", width: "100%", padding: "11px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left", borderBottom: `1px solid ${th.sep}` }}>
+              <div style={{ width: 40, height: 40, borderRadius: 6, background: th.surface2, border: `1px solid ${th.sep}`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: MONO, fontSize: 14, fontWeight: 600, color: th.accent, flexShrink: 0 }}>
+                {c.name[0]}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: th.text }}>{c.name}</span>
+                  <span style={{ fontSize: 11, color: th.text3, fontFamily: MONO }}>{c.time}</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: c.unread ? th.text : th.text2, fontWeight: c.unread ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 200 }}>
+                  {c.typing ? "typing…" : c.msgs[c.msgs.length - 1].t}
+                </div>
+              </div>
+              {c.unread > 0 && <div style={{ width: 8, height: 8, borderRadius: 4, background: th.accent, flexShrink: 0 }} />}
+            </button>
+          ))}
+          <div style={{ textAlign: "center", padding: "13px 0", fontFamily: MONO, fontSize: 9, color: th.text3, letterSpacing: 1 }}>
+            X25519 · AES-256 · STORE-AND-FORWARD
           </div>
+        </div>
+      </div>
+      <div style={{ position: "absolute", inset: 0, background: th.bg, transform: active ? "none" : "translateX(102%)", transition: `transform 0.4s ${SPRING}`, display: "flex", flexDirection: "column" }}>
+        {active && (
+          <React.Fragment>
+            <GHeader th={th} title={active.name} onBack={() => setActiveId(null)}
+              right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.text3 }}>{active.route}</span>} />
+            <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "12px 12px 6px", display: "flex", flexDirection: "column", gap: 5 }}>
+              <div style={{ textAlign: "center", fontFamily: MONO, fontSize: 9, color: th.text3, margin: "2px 0 8px" }}>
+                {active.hops} HOP{active.hops > 1 ? "S" : ""} · E2E ENCRYPTED
+              </div>
+              {active.msgs.map((m, i) => {
+                const out = m.d === "out";
+                return (
+                  <div key={m.id} style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start", animation: i === active.msgs.length - 1 ? "nbBubbleIn 0.3s " + SPRING : "none" }}>
+                    <div style={{ maxWidth: "76%", padding: "7px 11px", borderRadius: 8, background: out ? th.accent : th.surface2, border: out ? "none" : `1px solid ${th.sep}`, color: out ? "#00252e" : th.text, fontSize: 13.5, lineHeight: 1.4, fontWeight: out ? 500 : 400 }}>{m.t}</div>
+                  </div>
+                );
+              })}
+              {active.typing && (
+                <div style={{ display: "flex" }}>
+                  <div style={{ padding: "10px 12px", borderRadius: 8, background: th.surface2, border: `1px solid ${th.sep}`, display: "flex", gap: 4 }}>
+                    {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: 3, background: th.text3, animation: `nbTyping 1.2s ${i * 0.18}s ease-in-out infinite` }} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ padding: "8px 10px 34px", display: "flex", gap: 7, borderTop: `1px solid ${th.sep}` }}>
+              <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }}
+                placeholder="Message the mesh"
+                style={{ flex: 1, borderRadius: 8, border: `1px solid ${th.sep}`, background: th.surface, color: th.text, fontFamily: DROID_FONT, fontSize: 13.5, padding: "8px 12px", outline: "none" }} />
+              <button onClick={() => { if (draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }} style={{ width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer", background: draft.trim() ? th.accent : th.surface2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon d={P.send} size={16} color={draft.trim() ? "#00252e" : th.text3} sw={2.4} />
+              </button>
+            </div>
+          </React.Fragment>
         )}
       </div>
-      {/* node legend */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 16, padding: "0 16px 8px", flexShrink: 0 }}>
-        {[{c:"#4ade80",l:"Seed"},{c:"#60a5fa",l:"Stem"},{c:"#f59e0b",l:"Trunk"},{c:COLORS.danger,l:"Waypoint"}].map(i => (
-          <div key={i.l} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 6, height: 6, borderRadius: 3, background: i.c }} />
-            <span style={{ fontFamily: SANS, fontSize: 9, color: COLORS.textDim }}>{i.l}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
-};
-// ============================================================
-// BUSH MANAGER (FindMy for nodes)
-// ============================================================
-const BushScreen = () => {
-  const [selected, setSelected] = useState(null);
+}
+
+function GBush({ th, nodes, feed }) {
+  const online = nodes.filter(n => n.online).length;
+  const avgRssi = Math.round(nodes.filter(n => n.online).reduce((s, n) => s + n.rssi, 0) / Math.max(1, online));
+  const health = clamp(Math.round(140 + avgRssi * 0.9), 55, 99);
   return (
-    <div style={{ flex: 1, overflow: "auto" }}>
-      <div style={{ padding: "16px 16px 8px", fontFamily: SANS, fontSize: 22, fontWeight: 700, color: COLORS.text }}>The Bush</div>
-      <div style={{ padding: "0 16px 12px", display: "flex", gap: 8 }}>
-        <div style={{ flex: 1, background: COLORS.surface2, borderRadius: 10, padding: "10px 12px", border: `1px solid ${COLORS.border}` }}>
-          <div style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: COLORS.accent }}>4</div>
-          <div style={{ fontFamily: SANS, fontSize: 10, color: COLORS.textDim }}>nodes online</div>
-        </div>
-        <div style={{ flex: 1, background: COLORS.surface2, borderRadius: 10, padding: "10px 12px", border: `1px solid ${COLORS.border}` }}>
-          <div style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: COLORS.warning }}>1</div>
-          <div style={{ fontFamily: SANS, fontSize: 10, color: COLORS.textDim }}>needs attention</div>
-        </div>
-        <div style={{ flex: 1, background: COLORS.surface2, borderRadius: 10, padding: "10px 12px", border: `1px solid ${COLORS.border}` }}>
-          <div style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: COLORS.text }}>847</div>
-          <div style={{ fontFamily: SANS, fontSize: 10, color: COLORS.textDim }}>relayed today</div>
-        </div>
-      </div>
-      {MOCK_NODES.map(n => (
-        <button key={n.id} onClick={() => setSelected(selected === n.id ? null : n.id)} style={{ display: "flex", width: "100%", padding: "12px 16px", gap: 12, alignItems: "center", background: selected === n.id ? COLORS.surface2 : "transparent", border: "none", borderBottom: `1px solid ${COLORS.border}`, cursor: "pointer", textAlign: "left", transition: "background 0.15s" }}>
-          <div style={{ width: 36, height: 36, borderRadius: n.type === "seed" ? 18 : n.type === "stem" ? 8 : 6, background: n.battery < 20 ? COLORS.danger + "20" : COLORS.accentDim, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${n.battery < 20 ? COLORS.danger : COLORS.accent}`, flexShrink: 0 }}>
-            <span style={{ fontFamily: FONT, fontSize: 10, fontWeight: 700, color: n.battery < 20 ? COLORS.danger : COLORS.accent }}>{n.type === "seed" ? "S" : n.type === "stem" ? "ST" : "T"}</span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.text }}>{n.name}</div>
-            <div style={{ fontFamily: FONT, fontSize: 10, color: COLORS.textDim }}>{n.signal} dBm · {n.lastSeen}</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: n.battery < 20 ? COLORS.danger : n.battery < 50 ? COLORS.warning : COLORS.accent }}>{n.battery}%</div>
-            <div style={{ fontFamily: SANS, fontSize: 9, color: n.status === "online" ? COLORS.accent : COLORS.warning }}>{n.status}</div>
-          </div>
-        </button>
-      ))}
-      {selected && (
-        <div style={{ margin: "0 16px 12px", background: COLORS.surface2, borderRadius: 12, padding: 14, border: `1px solid ${COLORS.border}` }}>
-          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: COLORS.text, marginBottom: 8 }}>Node Details</div>
-          {(() => {
-            const n = MOCK_NODES.find(x => x.id === selected);
-            return (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontFamily: FONT, fontSize: 10 }}>
-                <div style={{ color: COLORS.textDim }}>type</div><div style={{ color: COLORS.text }}>{n.type}</div>
-                <div style={{ color: COLORS.textDim }}>coords</div><div style={{ color: COLORS.text }}>{n.lat.toFixed(4)}, {n.lng.toFixed(4)}</div>
-                <div style={{ color: COLORS.textDim }}>signal</div><div style={{ color: COLORS.text }}>{n.signal} dBm</div>
-                <div style={{ color: COLORS.textDim }}>battery</div><div style={{ color: n.battery < 20 ? COLORS.danger : COLORS.text }}>{n.battery}%</div>
-                <div style={{ color: COLORS.textDim }}>firmware</div><div style={{ color: COLORS.text }}>NullNode v0.1.2</div>
-                <div style={{ color: COLORS.textDim }}>uptime</div><div style={{ color: COLORS.text }}>4d 7h 22m</div>
-              </div>
-            );
-          })()}
-          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <button style={{ flex: 1, padding: "6px 0", borderRadius: 8, border: `1px solid ${COLORS.accent}`, background: "transparent", fontFamily: SANS, fontSize: 11, color: COLORS.accent, cursor: "pointer" }}>locate</button>
-            <button style={{ flex: 1, padding: "6px 0", borderRadius: 8, border: `1px solid ${COLORS.border}`, background: "transparent", fontFamily: SANS, fontSize: 11, color: COLORS.textDim, cursor: "pointer" }}>ping</button>
-            <button style={{ flex: 1, padding: "6px 0", borderRadius: 8, border: `1px solid ${COLORS.border}`, background: "transparent", fontFamily: SANS, fontSize: 11, color: COLORS.textDim, cursor: "pointer" }}>update</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-// ============================================================
-// KNOWLEDGE (Wikipedia + Claude AI)
-// ============================================================
-const KnowledgeScreen = () => {
-  const [tab, setTab] = useState("wiki");
-  const [search, setSearch] = useState("");
-  const [aiInput, setAiInput] = useState("");
-  const [aiMessages, setAiMessages] = useState([
-    { from: "ai", text: "i'm your local knowledge base. i have all of Wikipedia stored offline plus general knowledge. ask me anything. no internet needed." }
-  ]);
-  const handleAiSend = () => {
-    if (!aiInput.trim()) return;
-    const q = aiInput.trim();
-    setAiMessages(prev => [...prev, { from: "user", text: q }]);
-    setAiInput("");
-    setTimeout(() => {
-      setAiMessages(prev => [...prev, { from: "ai", text: `searching local knowledge base for "${q}"...\n\nthis would query the onboard compressed Wikipedia dump (~22GB on eMMC) and/or connect to Claude via MCP when mesh internet bridge is available. results rendered here with citations.` }]);
-    }, 800);
-  };
-  return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "16px 16px 8px", fontFamily: SANS, fontSize: 22, fontWeight: 700, color: COLORS.text }}>Knowledge</div>
-      <div style={{ display: "flex", margin: "0 16px 12px", borderRadius: 10, border: `1px solid ${COLORS.border}`, overflow: "hidden", flexShrink: 0 }}>
-        {[{id:"wiki",label:"Wikipedia"},{id:"ai",label:"AI Assistant"}].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: "8px 0", background: tab === t.id ? COLORS.accent : COLORS.surface2, border: "none", fontFamily: SANS, fontSize: 12, fontWeight: 600, color: tab === t.id ? COLORS.bg : COLORS.textDim, cursor: "pointer", transition: "all 0.15s" }}>{t.label}</button>
-        ))}
-      </div>
-      {tab === "wiki" ? (
-        <div style={{ flex: 1, overflow: "auto", padding: "0 16px" }}>
-          <div style={{ display: "flex", alignItems: "center", background: COLORS.surface2, borderRadius: 10, padding: "8px 12px", gap: 8, marginBottom: 12 }}>
-            <Icon name="search" size={16} color={COLORS.textMuted} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="search wikipedia offline..." style={{ flex: 1, background: "transparent", border: "none", color: COLORS.text, fontFamily: SANS, fontSize: 13, outline: "none" }} />
-          </div>
-          <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.textMuted, marginBottom: 12 }}>6.7M articles stored locally - no connection needed</div>
-          {["Radio propagation","LoRa","Mesh networking","Frequency-hopping spread spectrum","Emergency communication system","Amateur radio"].map((article, i) => (
-            <div key={i} style={{ padding: "10px 0", borderBottom: `1px solid ${COLORS.border}`, cursor: "pointer" }}>
-              <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 500, color: COLORS.info }}>{article}</div>
-              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.textDim, marginTop: 2 }}>tap to read full article offline</div>
+    <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
+      <GHeader th={th} title="Bush" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.ok }}>● LIVE</span>} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px 44px" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          {[["ONLINE", online + "/" + nodes.length, th.accent], ["HEALTH", health + "%", health > 80 ? th.ok : th.warn], ["AVG dBm", avgRssi, th.text]].map(([l, v, c]) => (
+            <div key={l} style={{ flex: 1, background: th.surface, border: `1px solid ${th.sep}`, borderRadius: 8, padding: "9px 11px" }}>
+              <div style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: c }}>{v}</div>
+              <div style={{ fontFamily: MONO, fontSize: 8, letterSpacing: 1, color: th.text3, marginTop: 2 }}>{l}</div>
             </div>
           ))}
         </div>
-      ) : (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <div style={{ flex: 1, overflow: "auto", padding: "0 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-            {aiMessages.map((m, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: m.from === "user" ? "flex-end" : "flex-start" }}>
-                <div style={{ maxWidth: "85%", padding: "10px 14px", borderRadius: 14, background: m.from === "user" ? COLORS.accent : COLORS.surface3, color: m.from === "user" ? COLORS.bg : COLORS.text, fontFamily: SANS, fontSize: 12, lineHeight: 1.5, whiteSpace: "pre-wrap", borderBottomRightRadius: m.from === "user" ? 4 : 14, borderBottomLeftRadius: m.from === "user" ? 14 : 4 }}>
-                  {m.from === "ai" && <div style={{ fontFamily: FONT, fontSize: 9, color: COLORS.accent, marginBottom: 4, letterSpacing: 1 }}>NULLBERRY AI</div>}
-                  {m.text}
+        <div style={{ background: th.surface, border: `1px solid ${th.sep}`, borderRadius: 8, overflow: "hidden", marginBottom: 12 }}>
+          {nodes.map((n, i) => (
+            <div key={n.id} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderBottom: i < nodes.length - 1 ? `1px solid ${th.sep}` : "none", opacity: n.online ? 1 : 0.45 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: NODE_TYPES[n.type].c, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: MONO, fontSize: 12, fontWeight: 600, color: th.text }}>{n.id}</div>
+                <div style={{ fontFamily: MONO, fontSize: 8.5, color: th.text3 }}>
+                  {n.online ? `${n.rssi}dBm · ${n.hops === 0 ? "backbone" : n.hops + "hop"} · ${n.seen}s` : "offline"}
                 </div>
               </div>
-            ))}
-          </div>
-          <div style={{ display: "flex", padding: "8px 12px", gap: 8, borderTop: `1px solid ${COLORS.border}`, alignItems: "center", flexShrink: 0 }}>
-            <input value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAiSend()} placeholder="ask anything..." style={{ flex: 1, background: COLORS.surface2, border: `1px solid ${COLORS.border}`, borderRadius: 20, padding: "8px 14px", color: COLORS.text, fontFamily: SANS, fontSize: 13, outline: "none" }} />
-            <button onClick={handleAiSend} style={{ background: aiInput.trim() ? COLORS.accent : COLORS.surface3, border: "none", borderRadius: 20, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}><Icon name="send" size={16} color={aiInput.trim() ? COLORS.bg : COLORS.textMuted} /></button>
-          </div>
+              <span style={{ fontFamily: MONO, fontSize: 9.5, color: n.batt < 25 ? th.danger : th.text2 }}>{Math.round(n.batt)}%</span>
+              <div style={{ width: 40, height: 3, borderRadius: 2, background: th.sep }}>
+                <div style={{ width: `${n.batt}%`, height: "100%", borderRadius: 2, background: n.batt < 25 ? th.danger : n.batt < 55 ? th.warn : th.ok, transition: "width 1s linear" }} />
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-    </div>
-  );
-};
-// ============================================================
-// SETTINGS
-// ============================================================
-const SettingsScreen = () => (
-  <div style={{ flex: 1, overflow: "auto" }}>
-    <div style={{ padding: "16px 16px 12px", fontFamily: SANS, fontSize: 22, fontWeight: 700, color: COLORS.text }}>Settings</div>
-
-    <div style={{ padding: "0 16px 8px", fontFamily: FONT, fontSize: 10, letterSpacing: 1, color: COLORS.textMuted, textTransform: "uppercase" }}>Identity</div>
-    <div style={{ margin: "0 16px 16px", background: COLORS.surface2, borderRadius: 12, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
-      {[{l:"Display Name",v:"Damian"},{l:"Mesh Address",v:"a7c3...f291"},{l:"Public Key",v:"tap to view / share QR"}].map((r,i) => (
-        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", borderBottom: i < 2 ? `1px solid ${COLORS.border}` : "none" }}>
-          <span style={{ fontFamily: SANS, fontSize: 13, color: COLORS.text }}>{r.l}</span>
-          <span style={{ fontFamily: FONT, fontSize: 12, color: COLORS.textDim }}>{r.v}</span>
+        <div style={{ background: th.surface, border: `1px solid ${th.sep}`, borderRadius: 8, padding: "8px 12px" }}>
+          {feed.map((f, i) => (
+            <div key={f.id} style={{ fontFamily: MONO, fontSize: 9, lineHeight: 2, color: i === 0 ? th.accent : th.text3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", animation: i === 0 ? "nbFadeIn 0.5s ease" : "none" }}>
+              <span style={{ opacity: 0.55 }}>{f.time}</span>  {f.text}
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
-    <div style={{ padding: "0 16px 8px", fontFamily: FONT, fontSize: 10, letterSpacing: 1, color: COLORS.textMuted, textTransform: "uppercase" }}>Transport Layers</div>
-    <div style={{ margin: "0 16px 16px", background: COLORS.surface2, borderRadius: 12, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
-      {TRANSPORT_STATUS.map((t, i) => (
-        <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: i < TRANSPORT_STATUS.length - 1 ? `1px solid ${COLORS.border}` : "none" }}>
-          <span style={{ fontFamily: SANS, fontSize: 13, color: COLORS.text }}>{t.name}</span>
-          <span style={{ fontFamily: FONT, fontSize: 10, padding: "2px 8px", borderRadius: 4, background: t.status === "active" ? COLORS.accent + "20" : t.status === "standby" ? COLORS.info + "20" : COLORS.surface3, color: t.status === "active" ? COLORS.accent : t.status === "standby" ? COLORS.info : COLORS.textMuted }}>{t.status}</span>
-        </div>
-      ))}
-    </div>
-    <div style={{ padding: "0 16px 8px", fontFamily: FONT, fontSize: 10, letterSpacing: 1, color: COLORS.textMuted, textTransform: "uppercase" }}>Operational Mode</div>
-    <div style={{ margin: "0 16px 16px", background: COLORS.surface2, borderRadius: 12, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
-      {["Full Mesh","Reduced Signature","Whisper","Silent (RF Dark)","Dead Drop"].map((m,i) => (
-        <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: i < 4 ? `1px solid ${COLORS.border}` : "none", cursor: "pointer" }}>
-          <span style={{ fontFamily: SANS, fontSize: 13, color: i === 0 ? COLORS.accent : COLORS.text }}>{m}</span>
-          {i === 0 && <span style={{ fontFamily: FONT, fontSize: 10, color: COLORS.accent }}>active</span>}
-        </div>
-      ))}
-    </div>
-    <div style={{ padding: "0 16px 8px", fontFamily: FONT, fontSize: 10, letterSpacing: 1, color: COLORS.textMuted, textTransform: "uppercase" }}>System</div>
-    <div style={{ margin: "0 16px 16px", background: COLORS.surface2, borderRadius: 12, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
-      {[{l:"Nullberry OS",v:"v0.1.0-mk0"},{l:"NullRNS",v:"v0.1.2"},{l:"NullNode FW",v:"v0.1.2"},{l:"Spectrum Guardian",v:"standby"},{l:"Wikipedia DB",v:"6.7M articles"},{l:"Storage",v:"8.2 / 16 GB"}].map((r,i) => (
-        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", borderBottom: i < 5 ? `1px solid ${COLORS.border}` : "none" }}>
-          <span style={{ fontFamily: SANS, fontSize: 13, color: COLORS.text }}>{r.l}</span>
-          <span style={{ fontFamily: FONT, fontSize: 11, color: COLORS.textDim }}>{r.v}</span>
-        </div>
-      ))}
-    </div>
-    <div style={{ padding: "16px", textAlign: "center" }}>
-      <div style={{ fontFamily: FONT, fontSize: 10, color: COLORS.textMuted, letterSpacing: 2 }}>NULLBERRY LLC</div>
-      <div style={{ fontFamily: SANS, fontSize: 10, color: COLORS.textMuted, marginTop: 2 }}>building what's missing.</div>
-    </div>
-  </div>
-);
-// ============================================================
-// MAIN APP
-// ============================================================
-function NullberryOS() {
-  const [screen, setScreen] = useState("lock");
-  const [activeTab, setActiveTab] = useState("messages");
-  const [chatContact, setChatContact] = useState(null);
-  const [time, setTime] = useState("");
-  useEffect(() => {
-    const update = () => setTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-    update();
-    const i = setInterval(update, 30000);
-    return () => clearInterval(i);
-  }, []);
-  const handleNav = (tab) => {
-    setChatContact(null);
-    setActiveTab(tab);
-  };
-  const renderScreen = () => {
-    if (screen === "lock") return <LockScreen onUnlock={() => setScreen("home")} />;
-
-    if (chatContact) return <ChatScreen contact={chatContact} onBack={() => setChatContact(null)} />;
-    switch (activeTab) {
-      case "messages": return <MessagesScreen onOpenChat={setChatContact} />;
-      case "map": return <MapScreen />;
-      case "bush": return <BushScreen />;
-      case "knowledge": return <KnowledgeScreen />;
-      case "settings": return <SettingsScreen />;
-      default: return <MessagesScreen onOpenChat={setChatContact} />;
-    }
-  };
-  return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: 16, fontFamily: SANS }}>
-      {/* phone frame */}
-      <div style={{ width: 375, height: 720, background: COLORS.bg, borderRadius: 32, border: `2px solid ${COLORS.border}`, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 0 60px rgba(74,222,128,0.05), 0 20px 40px rgba(0,0,0,0.5)" }}>
-        {/* notch */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "8px 0 0", flexShrink: 0 }}>
-          <div style={{ width: 120, height: 4, borderRadius: 2, background: COLORS.surface3 }} />
-        </div>
-        {screen !== "lock" && <StatusBar time={time} />}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          {renderScreen()}
-        </div>
-        {screen !== "lock" && !chatContact && <NavBar active={activeTab} onNav={handleNav} />}
       </div>
     </div>
   );
 }
 
-// Mount
-const container = document.getElementById("os-demo-root");
-if (container) {
-  ReactDOM.render(<NullberryOS />, container);
+function GMap({ th, nodes }) {
+  const [pulseIdx, setPulseIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setPulseIdx(i => (i + 1) % nodes.length), 1900);
+    return () => clearInterval(t);
+  }, [nodes.length]);
+  const W = 330, H = 420, cx = W / 2, cy = H / 2;
+  const pos = useMemo(() => nodes.map(n => ({
+    x: cx + Math.cos(n.angle) * n.dist * (W / 2 - 32),
+    y: cy + Math.sin(n.angle) * n.dist * (H / 2 - 46),
+  })), [nodes.length]);
+  const line = th.name === "dark" ? "rgba(56,212,245,0.16)" : "rgba(11,147,180,0.25)";
+  return (
+    <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
+      <GHeader th={th} title="Mesh Map" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.text3 }}>{nodes.filter(n => n.online).length} UP</span>} />
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+          {[56, 104, 156].map((r, i) => <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={line} strokeDasharray="2 6" />)}
+          {pos.map((p, i) => {
+            let best = -1, bd = 1e9;
+            pos.forEach((q, j) => { if (j !== i) { const dd = (p.x - q.x) ** 2 + (p.y - q.y) ** 2; if (dd < bd) { bd = dd; best = j; } } });
+            return best >= 0 && nodes[i].online && nodes[best].online ? <line key={"l" + i} x1={p.x} y1={p.y} x2={pos[best].x} y2={pos[best].y} stroke={line} strokeWidth="1" /> : null;
+          })}
+          {pos.map((p, i) => {
+            const n = nodes[i], c = NODE_TYPES[n.type].c;
+            return (
+              <g key={"n" + i} opacity={n.online ? 1 : 0.3}>
+                {i === pulseIdx && n.online && <circle cx={p.x} cy={p.y} r="8" fill="none" stroke={c} opacity="0.7"><animate attributeName="r" from="5" to="20" dur="1.6s" repeatCount="indefinite" /><animate attributeName="opacity" from="0.7" to="0" dur="1.6s" repeatCount="indefinite" /></circle>}
+                <rect x={p.x - (n.type === "root" ? 6 : 4)} y={p.y - (n.type === "root" ? 6 : 4)} width={n.type === "root" ? 12 : 8} height={n.type === "root" ? 12 : 8} fill={c} transform={`rotate(45 ${p.x} ${p.y})`} />
+                <text x={p.x} y={p.y - 12} textAnchor="middle" fill={th.text2} fontSize="7.5" fontFamily={MONO}>{n.id}</text>
+              </g>
+            );
+          })}
+          <circle cx={cx} cy={cy} r="7" fill={th.accent}><animate attributeName="r" values="6;8;6" dur="2.4s" repeatCount="indefinite" /></circle>
+          <circle cx={cx} cy={cy} r="3" fill={th.name === "dark" ? "#000" : "#fff"} />
+          <text x={cx} y={cy + 22} textAnchor="middle" fill={th.text} fontSize="8.5" fontWeight="700" fontFamily={MONO}>YOU</text>
+        </svg>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 14, padding: "0 0 46px" }}>
+        {Object.values(NODE_TYPES).map(v => (
+          <div key={v.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ width: 7, height: 7, background: v.c, transform: "rotate(45deg)" }} />
+            <span style={{ fontFamily: MONO, fontSize: 9, color: th.text2 }}>{v.label.toUpperCase()}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
+
+function GTerminal({ th, feed }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, background: "#000", display: "flex", flexDirection: "column" }}>
+      <GHeader th={G_DARK} title="Terminal" />
+      <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px 44px", fontFamily: MONO, fontSize: 10, lineHeight: 1.9 }}>
+        <div style={{ color: CYAN }}>nullberry@mark0:~$ nullrns status</div>
+        <div style={{ color: "#9aa0a6" }}>NullRNS v0.4.1 · identity nb1·{Math.random().toString(36).slice(2, 8)}</div>
+        <div style={{ color: "#9aa0a6" }}>transports: L1 ✓ L2 ✓ L3 ✓ L4 ✓ L5 ✓ L6 ✓ L7 ✓</div>
+        <div style={{ color: "#9aa0a6" }}>hydra failover: armed · dead-drop cache: 0 pending</div>
+        <div style={{ color: CYAN, marginTop: 8 }}>nullberry@mark0:~$ tail -f /var/log/mesh</div>
+        {[...feed].reverse().map(f => (
+          <div key={f.id} style={{ color: "#5f6368" }}>[{f.time}] {f.text}</div>
+        ))}
+        <span style={{ color: CYAN }}>▊</span>
+      </div>
+    </div>
+  );
+}
+
+const G_MODES = ["Full Mesh", "Reduced Signature", "Whisper", "Silent (RF Dark)", "Dead Drop"];
+const TRANSPORTS = ["LoRa 915 MHz", "LoRa 433 MHz", "WiFi Direct", "BLE Mesh", "IR Optical", "Ultrasonic", "USB Wired"];
+
+function GToggle({ on, onChange, th }) {
+  return (
+    <button onClick={onChange} style={{ width: 40, height: 22, borderRadius: 4, border: `1px solid ${on ? th.accent : th.sep}`, cursor: "pointer", background: on ? th.accent : "transparent", position: "relative", transition: "all 0.2s", flexShrink: 0 }}>
+      <div style={{ position: "absolute", top: 2, left: on ? 19 : 2, width: 16, height: 16, borderRadius: 3, background: on ? "#00252e" : th.text3, transition: `left 0.2s ${SPRING}` }} />
+    </button>
+  );
+}
+
+function GSettings({ th, themeName, setThemeName, mode, setMode, transports, setTransports }) {
+  const Sect = ({ label }) => <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: 1.6, color: th.accent, margin: "18px 16px 6px" }}>{label}</div>;
+  return (
+    <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
+      <GHeader th={th} title="Settings" />
+      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 44 }}>
+        <Sect label="APPEARANCE" />
+        <div style={{ display: "flex", margin: "0 14px", gap: 8 }}>
+          {["dark", "light"].map(m => (
+            <button key={m} onClick={() => setThemeName(m)} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: `1px solid ${themeName === m ? th.accent : th.sep}`, cursor: "pointer", fontFamily: MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: themeName === m ? th.accent : th.text2, background: themeName === m ? (th.name === "dark" ? "rgba(56,212,245,0.08)" : "rgba(11,147,180,0.08)") : "transparent" }}>{m}</button>
+          ))}
+        </div>
+        <Sect label="OPERATIONAL MODE" />
+        <div style={{ margin: "0 14px", background: th.surface, border: `1px solid ${th.sep}`, borderRadius: 8, overflow: "hidden" }}>
+          {G_MODES.map((m, i) => (
+            <div key={m} onClick={() => setMode(m)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 13px", borderBottom: i < G_MODES.length - 1 ? `1px solid ${th.sep}` : "none", cursor: "pointer" }}>
+              <span style={{ fontSize: 13.5, color: th.text }}>{m}</span>
+              <div style={{ width: 14, height: 14, borderRadius: 7, border: `1.6px solid ${mode === m ? th.accent : th.text3}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {mode === m && <div style={{ width: 7, height: 7, borderRadius: 4, background: th.accent }} />}
+              </div>
+            </div>
+          ))}
+        </div>
+        <Sect label="TRANSPORT LAYERS" />
+        <div style={{ margin: "0 14px", background: th.surface, border: `1px solid ${th.sep}`, borderRadius: 8, overflow: "hidden" }}>
+          {TRANSPORTS.map((t, i) => (
+            <div key={t} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 13px", borderBottom: i < TRANSPORTS.length - 1 ? `1px solid ${th.sep}` : "none" }}>
+              <span style={{ fontFamily: MONO, fontSize: 11.5, color: th.text }}>L{i + 1} · {t}</span>
+              <GToggle th={th} on={transports[i]} onChange={() => setTransports(ts => ts.map((v, j) => j === i ? !v : v))} />
+            </div>
+          ))}
+        </div>
+        <Sect label="ABOUT" />
+        <div style={{ margin: "0 14px", background: th.surface, border: `1px solid ${th.sep}`, borderRadius: 8, overflow: "hidden" }}>
+          {[["Device", "MARK-0 Prototype"], ["OS", "Nullberry OS 0.4.1"], ["Kernel", "6.9.4-nb-hardened"], ["Verified boot", "enforced"]].map(([k, v], i, arr) => (
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "9px 13px", borderBottom: i < arr.length - 1 ? `1px solid ${th.sep}` : "none" }}>
+              <span style={{ fontSize: 13, color: th.text }}>{k}</span>
+              <span style={{ fontFamily: MONO, fontSize: 10.5, color: th.text2 }}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: "center", padding: "16px 0 4px" }}>
+          <img src="assets/logo-white.svg" alt="Nullberry" style={{ height: 14, margin: "0 auto", opacity: 0.4, filter: th.name === "light" ? "invert(1)" : "none" }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Mark1Demo() {
+  const [themeName, setThemeName] = useState("dark");
+  const th = themeName === "dark" ? G_DARK : G_LIGHT;
+  const [locked, setLocked] = useState(true);
+  const [app, setApp] = useState(null);
+  const [appVisible, setAppVisible] = useState(false);
+  const [nodes, feed] = useMesh();
+  const [contacts, setContacts, openConvo, send] = useConvos();
+  const [batt, setBatt] = useState(irnd(62, 94));
+  const [mode, setMode] = useState("Full Mesh");
+  const [transports, setTransports] = useState(TRANSPORTS.map(() => true));
+  const unread = contacts.reduce((s, c) => s + c.unread, 0);
+
+  useEffect(() => {
+    const t = setInterval(() => setBatt(b => Math.max(14, b - 1)), 50000);
+    return () => clearInterval(t);
+  }, []);
+
+  const openApp = (id) => { setApp(id); requestAnimationFrame(() => requestAnimationFrame(() => setAppVisible(true))); };
+  const goHome = () => { setAppVisible(false); setTimeout(() => setApp(null), 340); };
+
+  return (
+    <div style={{
+      width: "min(370px, calc(100vw - 40px))", aspectRatio: "370 / 800",
+      borderRadius: 18, padding: 7, position: "relative",
+      background: "linear-gradient(170deg, #23262a 0%, #0d0e10 40%, #16181b 100%)",
+      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.16), 0 26px 70px rgba(0,0,0,0.55), 0 0 60px rgba(56,212,245,0.06)",
+    }}>
+      {/* antenna bands */}
+      <div style={{ position: "absolute", top: 60, left: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
+      <div style={{ position: "absolute", top: 60, right: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
+      <div style={{ position: "absolute", bottom: 90, left: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
+      <div style={{ position: "absolute", right: -2.5, top: "24%", width: 3, height: 58, borderRadius: 2, background: "#26282c" }} />
+      <div style={{ position: "absolute", right: -2.5, top: "35%", width: 3, height: 34, borderRadius: 2, background: "#0e93b8" }} />
+
+      <div className="nb-screen" style={{ position: "absolute", inset: 7, borderRadius: 12, overflow: "hidden", background: th.bg, transition: "background 0.5s" }}>
+        {!locked && <GStatus th={th} batt={batt} />}
+
+        {!locked && (
+          <div style={{ position: "absolute", inset: 0, transform: app && appVisible ? "scale(0.97)" : "none", opacity: app && appVisible ? 0 : 1, transition: `all 0.35s ${SPRING}`, pointerEvents: app ? "none" : "auto" }}>
+            <GLauncher th={th} onOpen={openApp} unread={unread} nodesOnline={nodes.filter(n => n.online).length} />
+          </div>
+        )}
+
+        {app && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 20, transform: appVisible ? "none" : "translateY(4%)", opacity: appVisible ? 1 : 0, transition: `all 0.32s ${SPRING}` }}>
+            {app === "messages" && <GMessages th={th} contacts={contacts} openConvo={openConvo} send={send} />}
+            {app === "bush" && <GBush th={th} nodes={nodes} feed={feed} />}
+            {app === "map" && <GMap th={th} nodes={nodes} />}
+            {app === "terminal" && <GTerminal th={th} feed={feed} />}
+            {app === "settings" && <GSettings th={th} themeName={themeName} setThemeName={setThemeName} mode={mode} setMode={setMode} transports={transports} setTransports={setTransports} />}
+          </div>
+        )}
+
+        {locked && <GLock th={th} unread={unread} onUnlock={() => setLocked(false)} />}
+
+        {!locked && (
+          <button onClick={goHome} aria-label="Home" style={{ position: "absolute", bottom: 4, left: "50%", transform: "translateX(-50%)", width: 120, height: 20, background: "none", border: "none", cursor: "pointer", zIndex: 60, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0 }}>
+            <div style={{ width: 96, height: 4, borderRadius: 2, background: th.name === "dark" ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)", marginBottom: 4 }} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════
+   DEMO 2 — iPHONE · iOS COMPANION APP  (Liquid Glass)
+   ════════════════════════════════════════════════════════════ */
+const I_DARK = {
+  name: "dark", bg: "#000", grouped: "#0b0b0d", card: "rgba(28,28,30,0.86)", cardSolid: "#1c1c1e",
+  text: "#fff", text2: "rgba(235,235,245,0.62)", text3: "rgba(235,235,245,0.32)",
+  sep: "rgba(84,84,88,0.42)", blue: "#0a84ff", green: "#30d158", red: "#ff453a",
+  glass: "rgba(30,30,34,0.6)", glassBorder: "rgba(255,255,255,0.14)",
+  blur: "rgba(16,16,18,0.78)", statusText: "#fff",
+};
+const I_LIGHT = {
+  name: "light", bg: "#f2f2f7", grouped: "#f2f2f7", card: "rgba(255,255,255,0.86)", cardSolid: "#fff",
+  text: "#000", text2: "rgba(60,60,67,0.62)", text3: "rgba(60,60,67,0.3)",
+  sep: "rgba(60,60,67,0.18)", blue: "#007aff", green: "#34c759", red: "#ff3b30",
+  glass: "rgba(255,255,255,0.55)", glassBorder: "rgba(255,255,255,0.6)",
+  blur: "rgba(249,249,249,0.82)", statusText: "#000",
+};
+
+/* recreated iOS-style default wallpaper: flowing color bloom */
+const I_WALL = {
+  dark: "radial-gradient(90% 60% at 75% 12%, rgba(94,92,230,0.55), transparent 60%), radial-gradient(80% 55% at 20% 35%, rgba(10,132,255,0.5), transparent 65%), radial-gradient(90% 60% at 70% 78%, rgba(255,55,95,0.38), transparent 60%), radial-gradient(70% 50% at 25% 95%, rgba(255,159,10,0.3), transparent 65%), linear-gradient(170deg, #0b0b20 0%, #05050c 100%)",
+  light: "radial-gradient(90% 60% at 75% 12%, rgba(120,130,255,0.7), transparent 60%), radial-gradient(80% 55% at 20% 35%, rgba(90,200,250,0.65), transparent 65%), radial-gradient(90% 60% at 70% 78%, rgba(255,120,150,0.5), transparent 60%), radial-gradient(70% 50% at 25% 95%, rgba(255,204,120,0.5), transparent 65%), linear-gradient(170deg, #cfd8ff 0%, #eef1f8 100%)",
+};
+
+function IStatusBar({ th, batt, onIsland }) {
+  const now = useNow(5000);
+  return (
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 50, display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 24px 5px", zIndex: 40, pointerEvents: "none", fontFamily: IOS_FONT }}>
+      <div style={{ width: 92, textAlign: "center", fontSize: 14.5, fontWeight: 600, color: th.statusText }}>{fmtTime(now)}</div>
+      <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+        <SignalBars color={th.statusText} />
+        <span style={{ fontSize: 10.5, fontWeight: 600, color: th.statusText }}>5G</span>
+        <BatteryIcon pct={batt} color={th.statusText} />
+      </div>
+    </div>
+  );
+}
+
+function Island({ activity }) {
+  const active = !!activity;
+  return (
+    <div style={{
+      position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)",
+      width: active ? 288 : 112, height: active ? 62 : 32,
+      background: "#000", borderRadius: active ? 32 : 18, zIndex: 50,
+      transition: `all 0.55s ${SPRING}`, overflow: "hidden",
+      display: "flex", alignItems: "center", justifyContent: active ? "flex-start" : "center",
+      padding: active ? "0 14px" : 0,
+      boxShadow: active ? "0 8px 26px rgba(0,0,0,0.5)" : "none",
+    }}>
+      {active && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", animation: "nbFadeIn 0.4s ease" }}>
+          <div style={{ width: 34, height: 34, borderRadius: 17, background: `hsl(${activity.hue || 198} 62% 46%)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff", fontFamily: IOS_FONT, fontWeight: 700, fontSize: 14 }}>
+            {activity.initial || "N"}
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 9.5, fontFamily: IOS_FONT, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{activity.kind}</div>
+            <div style={{ color: "#fff", fontSize: 12.5, fontFamily: IOS_FONT, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activity.text}</div>
+          </div>
+          <div style={{ width: 7, height: 7, borderRadius: 4, background: CYAN, boxShadow: `0 0 8px ${CYAN}`, flexShrink: 0, animation: "nbPulse 1.4s ease-in-out infinite" }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---- Apple-style app icon recreations (drawn, not Apple assets) ---- */
+const Squircle = ({ children, bg, size = 57 }) => (
+  <div style={{ width: size, height: size, borderRadius: size * 0.24, background: bg, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", boxShadow: "inset 0 0.5px 0.5px rgba(255,255,255,0.4), 0 5px 13px rgba(0,0,0,0.32)" }}>
+    {children}
+  </div>
+);
+const ICONS = {
+  messages: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#6be36a,#12b81f)">
+      <svg width={s * 0.58} height={s * 0.58} viewBox="0 0 24 24"><path fill="#fff" d="M12 3C6.48 3 2 6.86 2 11.6c0 2.7 1.46 5.1 3.74 6.68-.18 1.02-.7 2.16-1.62 3.02 1.66-.14 3.2-.8 4.4-1.72 1.1.3 2.26.46 3.48.46 5.52 0 10-3.86 10-8.6S17.52 3 12 3z"/></svg>
+    </Squircle>
+  ),
+  facetime: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#6be36a,#12b81f)">
+      <svg width={s * 0.6} height={s * 0.6} viewBox="0 0 24 24"><rect x="2.4" y="6" width="12.6" height="12" rx="3.4" fill="#fff"/><path fill="#fff" d="M16.4 10.6l4-2.9c.5-.36 1.2 0 1.2.62v7.36c0 .62-.7.98-1.2.62l-4-2.9v-2.8z"/></svg>
+    </Squircle>
+  ),
+  phone: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#6be36a,#12b81f)">
+      <svg width={s * 0.55} height={s * 0.55} viewBox="0 0 24 24"><path fill="#fff" d="M6.62 3.2c.6-.16 1.23.1 1.55.63l1.6 2.72c.35.6.28 1.35-.18 1.87l-1.2 1.35a14.5 14.5 0 0 0 5.84 5.84l1.35-1.2c.52-.46 1.28-.53 1.87-.18l2.72 1.6c.54.32.8.95.63 1.55l-.7 2.6c-.17.63-.75 1.06-1.4 1.02C9.7 20.4 3.6 14.3 3 5.7c-.04-.65.4-1.23 1.02-1.4l2.6-.7z"/></svg>
+    </Squircle>
+  ),
+  safari: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#f8f9fb,#dfe3ea)">
+      <svg width={s * 0.72} height={s * 0.72} viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="url(#nbSafG)" />
+        <defs><radialGradient id="nbSafG" cx="0.5" cy="0.35" r="0.8"><stop offset="0" stopColor="#3fc2ff"/><stop offset="1" stopColor="#1668e3"/></radialGradient></defs>
+        {[...Array(12)].map((_, i) => <rect key={i} x="11.7" y="2.6" width="0.6" height="1.6" fill="rgba(255,255,255,0.8)" transform={`rotate(${i * 30} 12 12)`} />)}
+        <polygon points="12,12 15.6,8.4 13.2,13.2" fill="#fff" />
+        <polygon points="12,12 8.4,15.6 10.8,10.8" fill="#ff3b30" />
+      </svg>
+    </Squircle>
+  ),
+  photos: (s) => (
+    <Squircle size={s} bg="#fff">
+      <svg width={s * 0.66} height={s * 0.66} viewBox="0 0 24 24">
+        {["#f5b427", "#e8862c", "#dd5142", "#c74e9b", "#8262c8", "#4a7bd6", "#4aa8d8", "#7fbc4e"].map((c, i) => (
+          <ellipse key={i} cx="12" cy="7.2" rx="2.6" ry="4.6" fill={c} opacity="0.82" transform={`rotate(${i * 45} 12 12)`} />
+        ))}
+      </svg>
+    </Squircle>
+  ),
+  camera: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#e6e7ea,#c9cbd1)">
+      <svg width={s * 0.62} height={s * 0.62} viewBox="0 0 24 24">
+        <rect x="2.5" y="6" width="19" height="13" rx="3" fill="#3c3f45" />
+        <path d="M8.6 6l1-1.8c.2-.34.55-.55.94-.55h2.92c.4 0 .75.2.94.55L15.4 6z" fill="#3c3f45" />
+        <circle cx="12" cy="12.5" r="4.2" fill="#23252a" />
+        <circle cx="12" cy="12.5" r="2.7" fill="url(#nbLens)" />
+        <defs><radialGradient id="nbLens" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stopColor="#7fb2e8"/><stop offset="1" stopColor="#1c2c48"/></radialGradient></defs>
+      </svg>
+    </Squircle>
+  ),
+  mail: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#4fa8ff,#1668e3)">
+      <svg width={s * 0.6} height={s * 0.6} viewBox="0 0 24 24">
+        <rect x="2.6" y="5.4" width="18.8" height="13.2" rx="2.4" fill="#fff" />
+        <path d="M3.4 6.6l8.6 6.4 8.6-6.4" fill="none" stroke="#1668e3" strokeWidth="1.3" />
+      </svg>
+    </Squircle>
+  ),
+  maps: (s) => (
+    <Squircle size={s} bg="linear-gradient(150deg,#e8f4e0 0%, #d3ecf7 100%)">
+      <svg width={s} height={s} viewBox="0 0 57 57">
+        <path d="M0 34 Q18 26 30 34 T57 30 V57 H0 Z" fill="#c9e8a5" />
+        <path d="M0 20 C14 16 30 24 57 14 L57 22 C30 32 14 24 0 28 Z" fill="#f7d954" opacity="0.9" />
+        <rect x="24" y="0" width="7" height="57" fill="#fff" transform="rotate(18 28 28)" />
+        <polygon points="28,16 36,36 28,31 20,36" fill="#1668e3" transform="rotate(24 28 26)" />
+      </svg>
+    </Squircle>
+  ),
+  clock: (s) => {
+    const d = new Date();
+    const hh = (d.getHours() % 12) * 30 + d.getMinutes() * 0.5, mm = d.getMinutes() * 6;
+    return (
+      <Squircle size={s} bg="#fff">
+        <svg width={s * 0.82} height={s * 0.82} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10.6" fill="#fff" stroke="#111" strokeWidth="0.5" />
+          {[...Array(12)].map((_, i) => <rect key={i} x="11.8" y="1.8" width="0.5" height="1.8" fill="#111" transform={`rotate(${i * 30} 12 12)`} />)}
+          <line x1="12" y1="12" x2={12 + 4.6 * Math.sin(hh * Math.PI / 180)} y2={12 - 4.6 * Math.cos(hh * Math.PI / 180)} stroke="#111" strokeWidth="1.1" strokeLinecap="round" />
+          <line x1="12" y1="12" x2={12 + 6.8 * Math.sin(mm * Math.PI / 180)} y2={12 - 6.8 * Math.cos(mm * Math.PI / 180)} stroke="#111" strokeWidth="0.8" strokeLinecap="round" />
+          <line x1="12" y1="12.8" x2="12" y2="4.6" stroke="#ff9500" strokeWidth="0.5" transform={`rotate(${d.getSeconds() * 6} 12 12)`} />
+          <circle cx="12" cy="12" r="0.9" fill="#111" />
+        </svg>
+      </Squircle>
+    );
+  },
+  weather: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#4da4f5,#1c66d4)">
+      <svg width={s * 0.64} height={s * 0.64} viewBox="0 0 24 24">
+        <circle cx="9" cy="9" r="4.4" fill="#ffd60a" />
+        <path d="M8 18.5a3.5 3.5 0 0 1 .4-6.98A4.5 4.5 0 0 1 17 12a3.25 3.25 0 0 1-.25 6.5z" fill="#fff" />
+      </svg>
+    </Squircle>
+  ),
+  settings: (s) => (
+    <Squircle size={s} bg="linear-gradient(180deg,#9a9da5,#63666e)">
+      <svg width={s * 0.66} height={s * 0.66} viewBox="0 0 24 24" fill="none" stroke="#e8e9ec" strokeWidth="1.5">
+        <circle cx="12" cy="12" r="3.2" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    </Squircle>
+  ),
+  nullberry: (s) => (
+    <Squircle size={s} bg="linear-gradient(160deg,#101318,#04070a)">
+      <img src="assets/favicon-dark.svg" alt="" style={{ width: "62%", height: "62%", objectFit: "contain" }} />
+    </Squircle>
+  ),
+};
+
+const I_GRID = [
+  { id: "facetime", label: "FaceTime" },
+  { id: "photos", label: "Photos" },
+  { id: "camera", label: "Camera" },
+  { id: "maps", label: "Maps" },
+  { id: "clock", label: "Clock" },
+  { id: "weather", label: "Weather" },
+  { id: "mail", label: "Mail" },
+  { id: "nullberry", label: "Nullberry" },
+];
+const I_DOCK = ["phone", "safari", "messages", "settings"];
+const I_FUNCTIONAL = ["messages", "facetime", "nullberry", "settings"];
+
+function IHome({ th, onOpen, unread }) {
+  const [bounce, setBounce] = useState(null);
+  const tap = (id) => {
+    if (I_FUNCTIONAL.includes(id)) { onOpen(id); return; }
+    setBounce(id);
+    setTimeout(() => setBounce(null), 420);
+  };
+  const IconBtn = ({ id, label }) => (
+    <button onClick={() => tap(id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: 0, width: 70, animation: bounce === id ? "nbNudge 0.4s ease" : "none" }}>
+      <div style={{ position: "relative" }}>
+        {ICONS[id](57)}
+        {id === "messages" && unread > 0 && (
+          <div style={{ position: "absolute", top: -5, right: -5, minWidth: 19, height: 19, borderRadius: 10, background: "#ff3b30", color: "#fff", fontSize: 11.5, fontWeight: 600, fontFamily: IOS_FONT, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>{unread}</div>
+        )}
+      </div>
+      {label !== "" && <span style={{ fontSize: 10.5, fontFamily: IOS_FONT, fontWeight: 500, color: th.name === "dark" ? "#fff" : "#1a1a1c", textShadow: th.name === "dark" ? "0 1px 4px rgba(0,0,0,0.6)" : "0 1px 4px rgba(255,255,255,0.5)" }}>{label}</span>}
+    </button>
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, paddingTop: 66, display: "flex", flexDirection: "column", zIndex: 5 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", justifyItems: "center", rowGap: 18, padding: "8px 12px 0" }}>
+        {I_GRID.map(a => <IconBtn key={a.id} id={a.id} label={a.label} />)}
+      </div>
+      <div style={{ flex: 1 }} />
+      {/* liquid-glass dock */}
+      <div style={{ margin: "0 12px 20px", borderRadius: 30, padding: "11px 6px", background: th.glass, backdropFilter: "blur(28px) saturate(1.6)", WebkitBackdropFilter: "blur(28px) saturate(1.6)", border: `1px solid ${th.glassBorder}`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 10px 30px rgba(0,0,0,0.25)", display: "flex", justifyContent: "space-around" }}>
+        {I_DOCK.map(id => <IconBtn key={id} id={id} label="" />)}
+      </div>
+    </div>
+  );
+}
+
+function ILock({ th, onUnlocked, unread }) {
+  const now = useNow(5000);
+  const [stage, setStage] = useState("clock"); // clock | pin
+  const [pin, setPin] = useState("");
+  const press = (n) => {
+    if (pin.length >= 4) return;
+    const next = pin + n;
+    setPin(next);
+    if (next.length === 4) setTimeout(onUnlocked, 320);
+  };
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const glass = { background: th.name === "dark" ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.5)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: `0.5px solid ${th.glassBorder}` };
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 30, fontFamily: IOS_FONT, display: "flex", flexDirection: "column", alignItems: "center" }} onClick={() => stage === "clock" && setStage("pin")}>
+      {stage === "clock" ? (
+        <React.Fragment>
+          <div style={{ marginTop: 74, display: "flex", alignItems: "center", gap: 6, color: th.statusText, opacity: 0.9 }}>
+            <Icon d={P.shield} size={13} color={th.statusText} sw={2} />
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{days[now.getDay()]}, {months[now.getMonth()]} {now.getDate()}</span>
+          </div>
+          <div style={{ fontSize: 88, fontWeight: 700, letterSpacing: -3, color: th.statusText, lineHeight: 1.02, marginTop: 2, fontFamily: IOS_FONT }}>{fmtTime(now)}</div>
+          {unread > 0 && (
+            <div style={{ width: "84%", marginTop: 26, borderRadius: 22, padding: "11px 13px", display: "flex", gap: 10, alignItems: "center", ...glass }}>
+              {ICONS.nullberry(36)}
+              <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: th.text }}>Nullberry</span>
+                  <span style={{ fontSize: 11, color: th.text2 }}>now</span>
+                </div>
+                <div style={{ fontSize: 12.5, color: th.text2 }}>{unread} new relay message{unread > 1 ? "s" : ""} · MARK-1 connected</div>
+              </div>
+            </div>
+          )}
+          <div style={{ flex: 1 }} />
+          <div style={{ display: "flex", justifyContent: "space-between", width: "100%", padding: "0 44px", marginBottom: 34 }}>
+            <div style={{ width: 50, height: 50, borderRadius: 25, display: "flex", alignItems: "center", justifyContent: "center", ...glass }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={th.statusText} strokeWidth="1.8"><path d="M9 2h6l1 7c0 1.5-1 2-1 2v9a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-9s-1-.5-1-2l1-7z"/><path d="M12 13v3"/></svg>
+            </div>
+            <div style={{ width: 50, height: 50, borderRadius: 25, display: "flex", alignItems: "center", justifyContent: "center", ...glass }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={th.statusText} strokeWidth="1.8"><rect x="2.5" y="6" width="19" height="13" rx="3"/><path d="M8.6 6l1.2-2.2h4.4L15.4 6"/><circle cx="12" cy="12.5" r="3.4"/></svg>
+            </div>
+          </div>
+          <div style={{ fontSize: 12, color: th.statusText, opacity: 0.65, marginBottom: 14 }}>Tap to unlock</div>
+        </React.Fragment>
+      ) : (
+        <React.Fragment>
+          <div style={{ marginTop: 92, fontSize: 15, fontWeight: 600, color: th.statusText }}>Enter Passcode</div>
+          <div style={{ fontSize: 11.5, color: th.statusText, opacity: 0.6, marginTop: 4 }}>any 4 digits work in the demo</div>
+          <div style={{ display: "flex", gap: 17, margin: "24px 0 30px" }}>
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} style={{ width: 12, height: 12, borderRadius: 6, border: `1.2px solid ${th.statusText}`, background: i < pin.length ? th.statusText : "transparent", transition: "background 0.15s" }} />
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 70px)", gap: 13 }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, "⌫"].map((k, i) => k === null ? <div key={i} /> : (
+              <button key={i} onClick={(e) => { e.stopPropagation(); k === "⌫" ? setPin(pin.slice(0, -1)) : press(String(k)); }}
+                style={{ width: 70, height: 70, borderRadius: 35, border: "none", cursor: "pointer", ...glass, color: th.statusText, fontSize: k === "⌫" ? 15 : 27, fontFamily: IOS_FONT }}>
+                {k}
+              </button>
+            ))}
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+function INavHeader({ th, title, onBack, sub, right, big }) {
+  return (
+    <div style={{ padding: "58px 14px 8px", background: th.blur, backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderBottom: `0.5px solid ${th.sep}`, position: "relative", zIndex: 5, display: "flex", alignItems: "center", gap: 4 }}>
+      {onBack && (
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: th.blue, display: "flex", alignItems: "center", padding: 0 }}>
+          <Icon d={P.back} size={22} color={th.blue} sw={2.2} />
+        </button>
+      )}
+      <div style={{ flex: 1, textAlign: onBack ? "center" : "left", minWidth: 0 }}>
+        <div style={{ fontFamily: IOS_FONT, fontWeight: 700, fontSize: onBack ? 15.5 : 28, letterSpacing: onBack ? 0 : -0.5, color: th.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
+        {sub && <div style={{ fontFamily: MONO, fontSize: 8.5, color: th.text3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sub}</div>}
+      </div>
+      <div style={{ minWidth: onBack ? 26 : 0 }}>{right}</div>
+    </div>
+  );
+}
+
+function IMessages({ th, contacts, openConvo, send }) {
+  const [activeId, setActiveId] = useState(null);
+  const [draft, setDraft] = useState("");
+  const scrollRef = useRef(null);
+  const active = contacts.find(c => c.id === activeId);
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [activeId, active && active.msgs.length, active && active.typing]);
+  return (
+    <div style={{ position: "absolute", inset: 0, background: th.bg, overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, transform: active ? "translateX(-28%)" : "none", transition: `transform 0.45s ${SPRING}`, display: "flex", flexDirection: "column" }}>
+        <INavHeader th={th} title="Messages" />
+        <div style={{ flex: 1, overflowY: "auto", paddingBottom: 44 }}>
+          {contacts.map(c => (
+            <button key={c.id} onClick={() => { openConvo(c.id); setActiveId(c.id); }} style={{ display: "flex", gap: 11, alignItems: "center", width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+              <div style={{ width: 10, display: "flex", justifyContent: "center", flexShrink: 0 }}>
+                {c.unread > 0 && <div style={{ width: 9, height: 9, borderRadius: 5, background: th.blue }} />}
+              </div>
+              <Avatar name={c.name} hue={c.hue} size={42} />
+              <div style={{ flex: 1, minWidth: 0, borderBottom: `0.5px solid ${th.sep}`, paddingBottom: 9 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <span style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 15, color: th.text }}>{c.name}</span>
+                  <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text3 }}>{c.time}</span>
+                </div>
+                <div style={{ fontFamily: MONO, fontSize: 8.5, color: th.text3, margin: "1px 0 2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 200 }}>{c.addr}</div>
+                <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: th.text2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 205 }}>
+                  {c.typing ? "typing…" : c.msgs[c.msgs.length - 1].t}
+                </div>
+              </div>
+            </button>
+          ))}
+          <div style={{ textAlign: "center", padding: "12px 0", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3 }}>
+            Relayed through nullberrysecure.net · end-to-end encrypted
+          </div>
+        </div>
+      </div>
+      <div style={{ position: "absolute", inset: 0, background: th.bg, transform: active ? "none" : "translateX(102%)", transition: `transform 0.45s ${SPRING}`, display: "flex", flexDirection: "column", boxShadow: "-12px 0 30px rgba(0,0,0,0.22)" }}>
+        {active && (
+          <React.Fragment>
+            <INavHeader th={th} onBack={() => setActiveId(null)} title={active.name} sub={active.addr}
+              right={<Icon d={P.video} size={19} color={th.blue} sw={1.9} />} />
+            <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "12px 13px 6px", display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ textAlign: "center", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, margin: "3px 0 9px" }}>
+                Contact verified · relay identity pinned
+              </div>
+              {active.msgs.map((m, i) => {
+                const out = m.d === "out";
+                const isLastOut = out && i === active.msgs.length - 1;
+                return (
+                  <React.Fragment key={m.id}>
+                    <div style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start", animation: i === active.msgs.length - 1 ? "nbBubbleIn 0.35s " + SPRING : "none" }}>
+                      <div style={{ maxWidth: "74%", padding: "7px 12px", borderRadius: 18, borderBottomRightRadius: out ? 5 : 18, borderBottomLeftRadius: out ? 18 : 5, background: out ? th.blue : (th.name === "dark" ? "#26262a" : "#e9e9eb"), color: out ? "#fff" : th.text, fontFamily: IOS_FONT, fontSize: 14.5, lineHeight: 1.35 }}>{m.t}</div>
+                    </div>
+                    {isLastOut && <div style={{ textAlign: "right", fontFamily: IOS_FONT, fontSize: 9.5, color: th.text3, padding: "1px 6px 0" }}>Delivered · Nullberry Relay</div>}
+                  </React.Fragment>
+                );
+              })}
+              {active.typing && (
+                <div style={{ display: "flex", animation: "nbBubbleIn 0.3s ease" }}>
+                  <div style={{ padding: "11px 13px", borderRadius: 18, borderBottomLeftRadius: 5, background: th.name === "dark" ? "#26262a" : "#e9e9eb", display: "flex", gap: 4 }}>
+                    {[0, 1, 2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: 4, background: th.text3, animation: `nbTyping 1.2s ${i * 0.18}s ease-in-out infinite` }} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ padding: "8px 11px 42px", display: "flex", gap: 8, alignItems: "center", background: th.blur, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+              <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }}
+                placeholder="Nullberry Relay"
+                style={{ flex: 1, borderRadius: 18, border: `1px solid ${th.sep}`, background: th.name === "dark" ? "rgba(255,255,255,0.06)" : "#fff", color: th.text, fontFamily: IOS_FONT, fontSize: 14.5, padding: "8px 14px", outline: "none" }} />
+              <button onClick={() => { if (draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }} style={{ width: 32, height: 32, borderRadius: 16, border: "none", cursor: draft.trim() ? "pointer" : "default", background: draft.trim() ? th.blue : (th.name === "dark" ? "#26262a" : "#e9e9eb"), display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon d={P.send} size={16} color={draft.trim() ? "#fff" : th.text3} sw={2.4} />
+              </button>
+            </div>
+          </React.Fragment>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IFaceTime({ th, contacts }) {
+  const [call, setCall] = useState(null);
+  const [sec, setSec] = useState(0);
+  useEffect(() => {
+    if (!call) return;
+    setSec(0);
+    const t = setInterval(() => setSec(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [call]);
+  const recents = useMemo(() => contacts.slice(0, 6).map((c, i) => ({ ...c, kind: i % 3 === 0 ? "Outgoing" : "Incoming", when: pick(["2:14 PM", "11:02 AM", "Yesterday", "Yesterday", "Sunday"]) })), [contacts]);
+  return (
+    <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column" }}>
+      <INavHeader th={th} title="FaceTime" />
+      <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px 46px" }}>
+        <div style={{ display: "flex", gap: 9, marginBottom: 16 }}>
+          <button style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", cursor: "pointer", background: th.name === "dark" ? "#26262a" : "#e9e9eb", color: th.text, fontFamily: IOS_FONT, fontSize: 13.5, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+            <Icon d={P.video} size={16} sw={2} /> New Link
+          </button>
+          <button style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", cursor: "pointer", background: th.green, color: "#fff", fontFamily: IOS_FONT, fontSize: 13.5, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+            <Icon d={P.video} size={16} sw={2} color="#fff" /> New FaceTime
+          </button>
+        </div>
+        <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, margin: "0 2px 6px" }}>Recents</div>
+        {recents.map((c, i) => (
+          <button key={c.id} onClick={() => setCall(c)} style={{ display: "flex", gap: 11, alignItems: "center", width: "100%", padding: "8px 2px", background: "none", border: "none", cursor: "pointer", textAlign: "left", borderBottom: `0.5px solid ${th.sep}` }}>
+            <Avatar name={c.name} hue={c.hue} size={40} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 14.5, color: c.kind === "Outgoing" ? th.text : th.text }}>{c.name}</div>
+              <div style={{ fontFamily: IOS_FONT, fontSize: 11.5, color: th.text3, display: "flex", alignItems: "center", gap: 4 }}>
+                <Icon d={c.kind === "Outgoing" ? P.send : P.phone} size={10} color={th.text3} sw={2} style={{ transform: c.kind === "Outgoing" ? "rotate(45deg)" : "none" }} />
+                {c.kind} · Nullberry Relay Audio
+              </div>
+            </div>
+            <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text3 }}>{c.when}</span>
+            <Icon d={P.info} size={17} color={th.blue} sw={1.8} />
+          </button>
+        ))}
+        <div style={{ textAlign: "center", padding: "14px 0", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3 }}>
+          Video unavailable over LoRa · audio relays through your MARK-1
+        </div>
+      </div>
+      {call && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 30, background: `radial-gradient(120% 90% at 50% 0%, hsl(${call.hue} 40% 22%), #060608)`, display: "flex", flexDirection: "column", alignItems: "center", animation: "nbFadeIn 0.35s ease" }}>
+          <div style={{ marginTop: 110 }}><Avatar name={call.name} hue={call.hue} size={92} /></div>
+          <div style={{ fontFamily: IOS_FONT, fontSize: 24, fontWeight: 700, color: "#fff", marginTop: 16 }}>{call.name}</div>
+          <div style={{ fontFamily: MONO, fontSize: 9.5, color: "rgba(255,255,255,0.5)", marginTop: 5 }}>{call.addr}</div>
+          <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: "rgba(255,255,255,0.75)", marginTop: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 7, height: 7, borderRadius: 4, background: CYAN, animation: "nbPulse 1.2s infinite" }} />
+            {sec < 3 ? "Connecting via mesh relay…" : `Mesh audio · ${String(Math.floor(sec / 60)).padStart(1, "0")}:${String(sec % 60).padStart(2, "0")}`}
+          </div>
+          <div style={{ flex: 1 }} />
+          <div style={{ display: "flex", gap: 22, marginBottom: 64 }}>
+            {[["mic", "rgba(255,255,255,0.18)"], ["spk", "rgba(255,255,255,0.18)"]].map(([k, bg]) => (
+              <div key={k} style={{ width: 56, height: 56, borderRadius: 28, background: bg, backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon d={k === "mic" ? ["M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z", "M19 10v2a7 7 0 0 1-14 0v-2", "M12 19v4"] : ["M11 5L6 9H2v6h4l5 4V5z", "M15.5 8.5a5 5 0 0 1 0 7"]} size={22} color="#fff" sw={1.8} />
+              </div>
+            ))}
+            <button onClick={() => setCall(null)} style={{ width: 56, height: 56, borderRadius: 28, border: "none", cursor: "pointer", background: "#ff3b30", display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(135deg)" }}>
+              <Icon d={P.phone} size={24} color="#fff" sw={0} fill="#fff" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function INullberryApp({ th, nodes, feed }) {
+  const [myAddr, setMyAddr] = useState(relayAddr);
+  const online = nodes.filter(n => n.online).length;
+  const Card = ({ children, style }) => (
+    <div style={{ background: th.card, backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRadius: 16, border: `0.5px solid ${th.glassBorder}`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)", padding: "13px 14px", marginBottom: 12, ...style }}>{children}</div>
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, background: th.name === "dark" ? "radial-gradient(110% 60% at 80% 0%, rgba(56,212,245,0.09), transparent 60%), #05080b" : "radial-gradient(110% 60% at 80% 0%, rgba(56,212,245,0.16), transparent 60%), #eef4f6", display: "flex", flexDirection: "column" }}>
+      <INavHeader th={th} title="Nullberry" right={<span style={{ fontFamily: MONO, fontSize: 9, color: "#30d158" }}>● PAIRED</span>} />
+      <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px 46px" }}>
+        <Card>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 44, height: 66, borderRadius: 7, border: `1.4px solid ${th.text3}`, background: th.name === "dark" ? "#0a0f13" : "#dfe8ec", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img src="assets/favicon-dark.svg" alt="" style={{ width: 20, filter: th.name === "light" ? "invert(0.2)" : "none" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: IOS_FONT, fontWeight: 700, fontSize: 15.5, color: th.text }}>Damian's MARK-1</div>
+              <div style={{ fontFamily: MONO, fontSize: 9, color: th.text3, marginTop: 2 }}>Nullberry OS 0.4.1 · L1–L7 up</div>
+              <div style={{ display: "flex", gap: 12, marginTop: 7 }}>
+                {[["BAT", "87%"], ["SIG", "−64 dBm"], ["HOPS", "direct"]].map(([k, v]) => (
+                  <div key={k}><span style={{ fontFamily: MONO, fontSize: 8, color: th.text3 }}>{k} </span><span style={{ fontFamily: MONO, fontSize: 10, color: CYAN, fontWeight: 600 }}>{v}</span></div>
+                ))}
+              </div>
+            </div>
+            <Icon d={P.locate} size={19} color={th.blue} sw={1.7} />
+          </div>
+        </Card>
+        <Card>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+            <span style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2 }}>My relay identity</span>
+            <button onClick={() => setMyAddr(relayAddr())} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: th.blue, fontFamily: IOS_FONT, fontSize: 12, fontWeight: 600, padding: 0 }}>
+              <Icon d={P.rotate} size={12} color={th.blue} sw={2.2} /> Rotate
+            </button>
+          </div>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: th.text, wordBreak: "break-all", background: th.name === "dark" ? "rgba(56,212,245,0.06)" : "rgba(13,111,140,0.07)", border: `1px solid ${th.name === "dark" ? "rgba(56,212,245,0.18)" : "rgba(13,111,140,0.2)"}`, borderRadius: 8, padding: "8px 10px", animation: "nbFadeIn 0.4s ease" }} key={myAddr}>
+            {myAddr}
+          </div>
+          <div style={{ fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, marginTop: 7, lineHeight: 1.5 }}>
+            Contacts only ever see this rotating relay address. Your real identity never leaves the device.
+          </div>
+        </Card>
+        <Card>
+          <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, marginBottom: 8 }}>Bush · {online}/{nodes.length} online</div>
+          {nodes.slice(0, 5).map((n, i) => (
+            <div key={n.id} style={{ display: "flex", alignItems: "center", gap: 9, padding: "6.5px 0", borderBottom: i < 4 ? `0.5px solid ${th.sep}` : "none", opacity: n.online ? 1 : 0.45 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 4, background: NODE_TYPES[n.type].c, boxShadow: n.online ? `0 0 7px ${NODE_TYPES[n.type].c}` : "none" }} />
+              <span style={{ fontFamily: IOS_FONT, fontSize: 13, fontWeight: 600, color: th.text, flex: 1 }}>{n.id}</span>
+              <span style={{ fontFamily: MONO, fontSize: 9, color: th.text3 }}>{n.online ? `${n.rssi} dBm · ${Math.round(n.batt)}%` : "offline"}</span>
+            </div>
+          ))}
+        </Card>
+        <Card style={{ marginBottom: 0 }}>
+          <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, marginBottom: 7 }}>Relay activity</div>
+          {feed.slice(0, 4).map((f, i) => (
+            <div key={f.id} style={{ fontFamily: MONO, fontSize: 9, lineHeight: 1.9, color: i === 0 ? CYAN : th.text3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ opacity: 0.55 }}>{f.time}</span>  {f.text}
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function ISettings({ th, themeName, setThemeName }) {
+  const Row = ({ label, right, last }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10.5px 15px", borderBottom: last ? "none" : `0.5px solid ${th.sep}` }}>
+      <span style={{ fontFamily: IOS_FONT, fontSize: 14.5, color: th.text }}>{label}</span>{right}
+    </div>
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, background: th.grouped, display: "flex", flexDirection: "column" }}>
+      <INavHeader th={th} title="Settings" />
+      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 46 }}>
+        <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, margin: "16px 18px 6px" }}>Appearance</div>
+        <div style={{ background: th.cardSolid, borderRadius: 12, margin: "0 14px", padding: 8, display: "flex", gap: 6 }}>
+          {["dark", "light"].map(m => (
+            <button key={m} onClick={() => setThemeName(m)} style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: IOS_FONT, fontSize: 13.5, fontWeight: 600, textTransform: "capitalize", color: themeName === m ? (th.name === "dark" ? "#000" : "#fff") : th.text2, background: themeName === m ? th.text : "transparent", transition: `all 0.3s ${SPRING}` }}>{m}</button>
+          ))}
+        </div>
+        <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, margin: "16px 18px 6px" }}>Nullberry</div>
+        <div style={{ background: th.cardSolid, borderRadius: 12, margin: "0 14px", overflow: "hidden" }}>
+          <Row label="Paired device" right={<span style={{ fontFamily: IOS_FONT, fontSize: 13.5, color: th.text2 }}>Damian's MARK-1</span>} />
+          <Row label="Relay domain" right={<span style={{ fontFamily: MONO, fontSize: 10.5, color: th.text2 }}>nullberrysecure.net</span>} />
+          <Row label="App version" last right={<span style={{ fontFamily: IOS_FONT, fontSize: 13.5, color: th.text2 }}>1.2.0</span>} />
+        </div>
+        <div style={{ textAlign: "center", fontFamily: IOS_FONT, fontSize: 10, color: th.text3, padding: "16px 0 6px" }}>
+          Demo · runs entirely in your browser
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IPhoneDemo() {
+  const [themeName, setThemeName] = useState("dark");
+  const th = themeName === "dark" ? I_DARK : I_LIGHT;
+  const [locked, setLocked] = useState(true);
+  const [app, setApp] = useState(null);
+  const [appVisible, setAppVisible] = useState(false);
+  const [nodes, feed] = useMesh();
+  const [activity, setActivity] = useState(null);
+  const islandTimer = useRef(null);
+  const notifyIsland = useCallback((act) => {
+    setActivity(act);
+    clearTimeout(islandTimer.current);
+    islandTimer.current = setTimeout(() => setActivity(null), 3400);
+  }, []);
+  const [contacts, setContacts, openConvo, send] = useConvos((cid, reply) => {
+    const c = contacts.find(x => x.id === cid);
+    notifyIsland({ kind: "Nullberry Relay", text: reply, initial: c ? c.name[0] : "N", hue: c ? c.hue : 198 });
+  });
+  const [batt, setBatt] = useState(irnd(55, 92));
+  const unread = contacts.reduce((s, c) => s + c.unread, 0);
+
+  useEffect(() => {
+    const t = setInterval(() => setBatt(b => Math.max(12, b - 1)), 55000);
+    return () => clearInterval(t);
+  }, []);
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (!locked && Math.random() < 0.35) {
+        const n = pick(nodes.filter(x => x.online));
+        if (n) notifyIsland({ kind: "MARK-1 · Bush", text: `${n.id} · ${n.rssi} dBm`, initial: null });
+      }
+    }, 10000);
+    return () => clearInterval(t);
+  }, [locked, nodes, notifyIsland]);
+
+  const openApp = (id) => { setApp(id); requestAnimationFrame(() => requestAnimationFrame(() => setAppVisible(true))); };
+  const goHome = () => { setAppVisible(false); setTimeout(() => setApp(null), 380); };
+
+  return (
+    <div style={{
+      width: "min(384px, calc(100vw - 40px))", aspectRatio: "384 / 812",
+      borderRadius: 58, padding: 5, position: "relative",
+      background: "linear-gradient(160deg, #3a3d42 0%, #17181b 30%, #26282c 60%, #101114 100%)",
+      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.25), 0 30px 80px rgba(0,0,0,0.6)",
+    }}>
+      <div style={{ position: "absolute", left: -2, top: "22%", width: 3, height: 24, borderRadius: 2, background: "#26282c" }} />
+      <div style={{ position: "absolute", left: -2, top: "30%", width: 3, height: 42, borderRadius: 2, background: "#26282c" }} />
+      <div style={{ position: "absolute", left: -2, top: "38%", width: 3, height: 42, borderRadius: 2, background: "#26282c" }} />
+      <div style={{ position: "absolute", right: -2, top: "27%", width: 3, height: 62, borderRadius: 2, background: "#26282c" }} />
+
+      <div className="nb-screen" style={{ position: "absolute", inset: 5, borderRadius: 53, overflow: "hidden", background: "#000" }}>
+        <div style={{ position: "absolute", inset: 0, background: I_WALL[themeName], transition: "opacity 0.6s ease" }} />
+
+        <Island activity={activity} />
+        <IStatusBar th={th} batt={batt} />
+
+        {!locked && (
+          <div style={{ position: "absolute", inset: 0, transform: app && appVisible ? "scale(0.92)" : "none", opacity: app && appVisible ? 0 : 1, transition: `all 0.42s ${SPRING}`, pointerEvents: app ? "none" : "auto" }}>
+            <IHome th={th} onOpen={openApp} unread={unread} />
+          </div>
+        )}
+
+        {app && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 20, transform: appVisible ? "none" : "scale(0.4) translateY(24%)", opacity: appVisible ? 1 : 0, transition: `all 0.45s ${SPRING}`, borderRadius: 42, overflow: "hidden" }}>
+            {app === "messages" && <IMessages th={th} contacts={contacts} openConvo={openConvo} send={send} />}
+            {app === "facetime" && <IFaceTime th={th} contacts={contacts} />}
+            {app === "nullberry" && <INullberryApp th={th} nodes={nodes} feed={feed} />}
+            {app === "settings" && <ISettings th={th} themeName={themeName} setThemeName={setThemeName} />}
+          </div>
+        )}
+
+        {locked && <ILock th={th} unread={unread} onUnlocked={() => setLocked(false)} />}
+
+        <button onClick={locked ? undefined : goHome} aria-label="Home" style={{ position: "absolute", bottom: 5, left: "50%", transform: "translateX(-50%)", width: 140, height: 20, background: "none", border: "none", cursor: locked ? "default" : "pointer", zIndex: 60, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0 }}>
+          <div style={{ width: 126, height: 5, borderRadius: 3, background: themeName === "dark" ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.7)", marginBottom: 3 }} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- mount ---------- */
+const sharedKeyframes = `
+  @keyframes nbPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes nbFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes nbBubbleIn { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
+  @keyframes nbTyping { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
+  @keyframes nbNudge { 0%,100% { transform: scale(1); } 40% { transform: scale(0.9); } 70% { transform: scale(1.04); } }
+  .nb-screen::-webkit-scrollbar, .nb-screen *::-webkit-scrollbar { width: 0; height: 0; }
+`;
+const styleTag = document.createElement("style");
+styleTag.textContent = sharedKeyframes;
+document.head.appendChild(styleTag);
+
+ReactDOM.createRoot(document.getElementById("os-demo-root")).render(<Mark1Demo />);
+ReactDOM.createRoot(document.getElementById("ios-demo-root")).render(<IPhoneDemo />);

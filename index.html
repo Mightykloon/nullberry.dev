@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/style.css?v=2">
 </head>
 <body>
 
@@ -287,9 +287,18 @@
     </div>
 
     <div class="os-demo-section reveal">
-      <h3>Live Demo</h3>
-      <p class="os-demo-hint">Enter any 4-digit PIN to unlock. Fully interactive.</p>
-      <div id="os-demo-root"></div>
+      <h3>Live Demos</h3>
+      <p class="os-demo-hint">Two ways to run the mesh. Left: the MARK-1 itself on Nullberry OS. Right: the iOS companion app relaying through your MARK-1. Enter any PIN to unlock. Everything runs in your browser.</p>
+      <div class="demo-duo">
+        <div class="demo-col">
+          <p class="demo-col-label">MARK-1 &middot; Nullberry OS</p>
+          <div id="os-demo-root"></div>
+        </div>
+        <div class="demo-col">
+          <p class="demo-col-label">iPhone &middot; Companion App</p>
+          <div id="ios-demo-root"></div>
+        </div>
+      </div>
     </div>
 
     <div class="modes-block reveal">
@@ -446,10 +455,10 @@
   </div>
 </footer>
 
-<script src="assets/main.js"></script>
+<script src="assets/main.js?v=2"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script type="text/babel" src="assets/os-demo.jsx"></script>
+<script type="text/babel" src="assets/os-demo.jsx?v=2"></script>
 </body>
 </html>
