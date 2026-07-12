@@ -19,7 +19,7 @@ const SPRING = "cubic-bezier(0.32, 0.72, 0, 1)";
 const IOS_FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif";
 const DROID_FONT = "'Inter', Roboto, 'Segoe UI', sans-serif";
 const MONO = "'JetBrains Mono', 'SF Mono', Consolas, monospace";
-const BRAND = "#ffb454";
+const BRAND = "#8fce5f";
 
 const relayAddr = () => "relay" + Math.random().toString(36).slice(2, 12) + "@nullberrysecure.net";
 
@@ -251,7 +251,7 @@ const G_DARK = {
 const G_LIGHT = {
   name: "light", bg: "#e9ebee", surface: "#ffffff", surface2: "#f1f3f4",
   text: "#17181a", text2: "#5f6368", text3: "#9aa0a6",
-  sep: "rgba(0,0,0,0.1)", accent: "#9a6206", ok: "#188038",
+  sep: "rgba(0,0,0,0.1)", accent: "#4e7d2a", ok: "#188038",
   warn: "#b05a00", danger: "#c5221f", key: "rgba(0,0,0,0.06)",
 };
 
@@ -331,7 +331,7 @@ function GLauncher({ th, onOpen, unread, nodesOnline }) {
             <div style={{ width: 56, height: 56, borderRadius: 28, background: th.surface2, border: `1px solid ${th.sep}`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", color: th.text }}>
               <Icon d={app.icon} size={25} sw={1.6} />
               {app.id === "messages" && unread > 0 && (
-                <div style={{ position: "absolute", top: -3, right: -3, minWidth: 17, height: 17, borderRadius: 9, background: th.accent, color: "#241503", fontSize: 10.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</div>
+                <div style={{ position: "absolute", top: -3, right: -3, minWidth: 17, height: 17, borderRadius: 9, background: th.accent, color: "#14260b", fontSize: 10.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</div>
               )}
             </div>
             <span style={{ fontSize: 11, color: th.text2 }}>{app.label}</span>
@@ -404,7 +404,7 @@ function GMessages({ th, contacts, openConvo, send }) {
                 const out = m.d === "out";
                 return (
                   <div key={m.id} style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start", animation: i === active.msgs.length - 1 ? "nbBubbleIn 0.3s " + SPRING : "none" }}>
-                    <div style={{ maxWidth: "76%", padding: "7px 11px", borderRadius: 8, background: out ? th.accent : th.surface2, border: out ? "none" : `1px solid ${th.sep}`, color: out ? "#241503" : th.text, fontSize: 13.5, lineHeight: 1.4, fontWeight: out ? 500 : 400 }}>{m.t}</div>
+                    <div style={{ maxWidth: "76%", padding: "7px 11px", borderRadius: 8, background: out ? th.accent : th.surface2, border: out ? "none" : `1px solid ${th.sep}`, color: out ? "#14260b" : th.text, fontSize: 13.5, lineHeight: 1.4, fontWeight: out ? 500 : 400 }}>{m.t}</div>
                   </div>
                 );
               })}
@@ -421,7 +421,7 @@ function GMessages({ th, contacts, openConvo, send }) {
                 placeholder="Message the mesh"
                 style={{ flex: 1, borderRadius: 8, border: `1px solid ${th.sep}`, background: th.surface, color: th.text, fontFamily: DROID_FONT, fontSize: 13.5, padding: "8px 12px", outline: "none" }} />
               <button onClick={() => { if (draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }} style={{ width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer", background: draft.trim() ? th.accent : th.surface2, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon d={P.send} size={16} color={draft.trim() ? "#241503" : th.text3} sw={2.4} />
+                <Icon d={P.send} size={16} color={draft.trim() ? "#14260b" : th.text3} sw={2.4} />
               </button>
             </div>
           </React.Fragment>
@@ -487,7 +487,7 @@ function GMap({ th, nodes }) {
     x: cx + Math.cos(n.angle) * n.dist * (W / 2 - 32),
     y: cy + Math.sin(n.angle) * n.dist * (H / 2 - 46),
   })), [nodes.length]);
-  const line = th.name === "dark" ? "rgba(255,180,84,0.16)" : "rgba(154,98,6,0.25)";
+  const line = th.name === "dark" ? "rgba(143,206,95,0.16)" : "rgba(78,125,42,0.25)";
   return (
     <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
       <GHeader th={th} title="Mesh Map" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.text3 }}>{nodes.filter(n => n.online).length} UP</span>} />
@@ -551,7 +551,7 @@ const TRANSPORTS = ["LoRa 915 MHz", "LoRa 433 MHz", "WiFi Direct", "BLE Mesh", "
 function GToggle({ on, onChange, th }) {
   return (
     <button onClick={onChange} style={{ width: 40, height: 22, borderRadius: 4, border: `1px solid ${on ? th.accent : th.sep}`, cursor: "pointer", background: on ? th.accent : "transparent", position: "relative", transition: "all 0.2s", flexShrink: 0 }}>
-      <div style={{ position: "absolute", top: 2, left: on ? 19 : 2, width: 16, height: 16, borderRadius: 3, background: on ? "#241503" : th.text3, transition: `left 0.2s ${SPRING}` }} />
+      <div style={{ position: "absolute", top: 2, left: on ? 19 : 2, width: 16, height: 16, borderRadius: 3, background: on ? "#14260b" : th.text3, transition: `left 0.2s ${SPRING}` }} />
     </button>
   );
 }
@@ -565,7 +565,7 @@ function GSettings({ th, themeName, setThemeName, mode, setMode, transports, set
         <Sect label="APPEARANCE" />
         <div style={{ display: "flex", margin: "0 14px", gap: 8 }}>
           {["dark", "light"].map(m => (
-            <button key={m} onClick={() => setThemeName(m)} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: `1px solid ${themeName === m ? th.accent : th.sep}`, cursor: "pointer", fontFamily: MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: themeName === m ? th.accent : th.text2, background: themeName === m ? (th.name === "dark" ? "rgba(255,180,84,0.08)" : "rgba(154,98,6,0.08)") : "transparent" }}>{m}</button>
+            <button key={m} onClick={() => setThemeName(m)} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: `1px solid ${themeName === m ? th.accent : th.sep}`, cursor: "pointer", fontFamily: MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: themeName === m ? th.accent : th.text2, background: themeName === m ? (th.name === "dark" ? "rgba(143,206,95,0.08)" : "rgba(78,125,42,0.08)") : "transparent" }}>{m}</button>
           ))}
         </div>
         <Sect label="OPERATIONAL MODE" />
@@ -631,14 +631,14 @@ function Mark1Demo() {
       width: "min(370px, calc(100vw - 40px))", aspectRatio: "370 / 800",
       borderRadius: 18, padding: 7, position: "relative",
       background: "linear-gradient(170deg, #23262a 0%, #0d0e10 40%, #16181b 100%)",
-      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.16), 0 26px 70px rgba(0,0,0,0.55), 0 0 60px rgba(255,180,84,0.06)",
+      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.16), 0 26px 70px rgba(0,0,0,0.55), 0 0 60px rgba(143,206,95,0.06)",
     }}>
       {/* antenna bands */}
       <div style={{ position: "absolute", top: 60, left: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
       <div style={{ position: "absolute", top: 60, right: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
       <div style={{ position: "absolute", bottom: 90, left: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
       <div style={{ position: "absolute", right: -2.5, top: "24%", width: 3, height: 58, borderRadius: 2, background: "#26282c" }} />
-      <div style={{ position: "absolute", right: -2.5, top: "35%", width: 3, height: 34, borderRadius: 2, background: "#d98a2b" }} />
+      <div style={{ position: "absolute", right: -2.5, top: "35%", width: 3, height: 34, borderRadius: 2, background: "#63a13a" }} />
 
       <div className="nb-screen" style={{ position: "absolute", inset: 7, borderRadius: 12, overflow: "hidden", background: th.bg, transition: "background 0.5s" }}>
         {!locked && <GStatus th={th} batt={batt} />}
@@ -1129,7 +1129,7 @@ function INullberryApp({ th, nodes, feed }) {
     <div style={{ background: th.card, backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRadius: 16, border: `0.5px solid ${th.glassBorder}`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)", padding: "13px 14px", marginBottom: 12, ...style }}>{children}</div>
   );
   return (
-    <div style={{ position: "absolute", inset: 0, background: th.name === "dark" ? "radial-gradient(110% 60% at 80% 0%, rgba(255,180,84,0.09), transparent 60%), #05080b" : "radial-gradient(110% 60% at 80% 0%, rgba(255,180,84,0.16), transparent 60%), #eef4f6", display: "flex", flexDirection: "column" }}>
+    <div style={{ position: "absolute", inset: 0, background: th.name === "dark" ? "radial-gradient(110% 60% at 80% 0%, rgba(143,206,95,0.09), transparent 60%), #05080b" : "radial-gradient(110% 60% at 80% 0%, rgba(143,206,95,0.16), transparent 60%), #eef4f6", display: "flex", flexDirection: "column" }}>
       <INavHeader th={th} title="Nullberry" right={<span style={{ fontFamily: MONO, fontSize: 9, color: "#30d158" }}>● PAIRED</span>} />
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px 46px" }}>
         <Card>
@@ -1156,7 +1156,7 @@ function INullberryApp({ th, nodes, feed }) {
               <Icon d={P.rotate} size={12} color={th.blue} sw={2.2} /> Rotate
             </button>
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, color: th.text, wordBreak: "break-all", background: th.name === "dark" ? "rgba(255,180,84,0.06)" : "rgba(138,85,20,0.07)", border: `1px solid ${th.name === "dark" ? "rgba(255,180,84,0.18)" : "rgba(138,85,20,0.2)"}`, borderRadius: 8, padding: "8px 10px", animation: "nbFadeIn 0.4s ease" }} key={myAddr}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: th.text, wordBreak: "break-all", background: th.name === "dark" ? "rgba(143,206,95,0.06)" : "rgba(63,107,36,0.07)", border: `1px solid ${th.name === "dark" ? "rgba(143,206,95,0.18)" : "rgba(63,107,36,0.2)"}`, borderRadius: 8, padding: "8px 10px", animation: "nbFadeIn 0.4s ease" }} key={myAddr}>
             {myAddr}
           </div>
           <div style={{ fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, marginTop: 7, lineHeight: 1.5 }}>

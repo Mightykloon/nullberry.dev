@@ -1,26 +1,26 @@
 /* ═══════════════════════════════════════════════════════════
    NULLBERRY — Field Instrument Design v3
-   Warm amber on jet black: radio-dial light, low blue emission.
+   Leaf green on jet black: organic signal light, low blue emission.
    Blueprint grid, mono data, layered glass cards.
    ═══════════════════════════════════════════════════════════ */
 :root {
   --bg: #050505;
   --surface: #0d0c0a;
   --surface-2: #17130d;
-  --card-grad: linear-gradient(165deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.012) 38%, rgba(255, 180, 84, 0.02) 100%);
+  --card-grad: linear-gradient(165deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.012) 38%, rgba(143, 206, 95, 0.02) 100%);
   --card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.055);
   --card-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
-  --accent: #ffb454;
-  --accent-dim: #d98a2b;
-  --accent-deep: #8a5514;
-  --accent-glow: rgba(255, 180, 84, 0.13);
-  --accent-faint: rgba(255, 180, 84, 0.05);
+  --accent: #8fce5f;
+  --accent-dim: #63a13a;
+  --accent-deep: #3f6b24;
+  --accent-glow: rgba(143, 206, 95, 0.13);
+  --accent-faint: rgba(143, 206, 95, 0.05);
   --text: #f5f1e8;
   --text-secondary: #b3a996;
   --text-tertiary: #7a7060;
-  --border: rgba(255, 180, 84, 0.12);
+  --border: rgba(143, 206, 95, 0.12);
   --border-dim: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 180, 84, 0.34);
+  --border-hover: rgba(143, 206, 95, 0.34);
   --warning: #ff6d55;
   --info: #60a5fa;
   --ok: #4ade80;
@@ -75,7 +75,7 @@ section, footer, nav { position: relative; z-index: 1; }
 a { color: var(--accent); text-decoration: none; transition: color 0.3s, opacity 0.3s; }
 a:hover { opacity: 0.75; }
 img, svg { max-width: 100%; display: block; }
-::selection { background: var(--accent); color: #241503; }
+::selection { background: var(--accent); color: #14260b; }
 
 /* TYPOGRAPHY */
 h1, h2, h3, h4 {
@@ -244,7 +244,7 @@ section + section::before {
 .nav-links a:hover { color: var(--text); opacity: 1; }
 
 .nav-links .nav-cta {
-  color: #241503;
+  color: #14260b;
   background: linear-gradient(120deg, var(--accent) 0%, var(--accent-dim) 100%);
   padding: 0.5rem 1.1rem;
   border-radius: 999px;
@@ -252,7 +252,7 @@ section + section::before {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 18px var(--accent-glow);
 }
 
-.nav-links .nav-cta:hover { opacity: 0.85; color: #241503; }
+.nav-links .nav-cta:hover { opacity: 0.85; color: #14260b; }
 
 .nav-toggle {
   display: none;
@@ -296,8 +296,8 @@ section + section::before {
   width: min(1100px, 120vw);
   aspect-ratio: 1.6;
   background: radial-gradient(ellipse at center,
-    rgba(255, 180, 84, 0.14) 0%,
-    rgba(138, 85, 20, 0.10) 35%,
+    rgba(143, 206, 95, 0.14) 0%,
+    rgba(63, 107, 36, 0.10) 35%,
     transparent 70%);
   filter: blur(60px);
   pointer-events: none;
@@ -332,13 +332,13 @@ section + section::before {
 .splash-img {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 34px rgba(255, 180, 84, 0.32));
+  filter: drop-shadow(0 0 34px rgba(143, 206, 95, 0.32));
   animation: heroBreath 6s ease-in-out infinite;
 }
 
 @keyframes heroBreath {
-  0%, 100% { filter: drop-shadow(0 0 26px rgba(255, 180, 84, 0.22)); }
-  50% { filter: drop-shadow(0 0 46px rgba(255, 180, 84, 0.42)); }
+  0%, 100% { filter: drop-shadow(0 0 26px rgba(143, 206, 95, 0.22)); }
+  50% { filter: drop-shadow(0 0 46px rgba(143, 206, 95, 0.42)); }
 }
 
 .hero-tagline {
@@ -459,11 +459,11 @@ section + section::before {
   border: 1px solid var(--border-hover);
   border-radius: 30px;
   background:
-    radial-gradient(120% 90% at 30% 0%, rgba(255, 180, 84, 0.08), transparent 55%),
+    radial-gradient(120% 90% at 30% 0%, rgba(143, 206, 95, 0.08), transparent 55%),
     linear-gradient(160deg, var(--surface-2) 0%, var(--surface) 55%, #0b0906 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 0 6px rgba(255, 180, 84, 0.04),
+    0 0 0 6px rgba(143, 206, 95, 0.04),
     0 24px 70px rgba(0, 0, 0, 0.6),
     0 0 60px var(--accent-glow);
   display: flex;
@@ -576,9 +576,9 @@ section + section::before {
 }
 
 .price-tile.featured {
-  border-color: rgba(255, 180, 84, 0.45);
+  border-color: rgba(143, 206, 95, 0.45);
   background:
-    radial-gradient(140% 100% at 50% 0%, rgba(255, 180, 84, 0.10), transparent 55%),
+    radial-gradient(140% 100% at 50% 0%, rgba(143, 206, 95, 0.10), transparent 55%),
     var(--card-grad), var(--surface-2);
   box-shadow: var(--card-inset), 0 0 44px var(--accent-glow), var(--card-shadow);
 }
@@ -591,7 +591,7 @@ section + section::before {
   font-family: var(--font-mono);
   font-size: 0.58rem;
   letter-spacing: 0.22em;
-  color: #241503;
+  color: #14260b;
   background: linear-gradient(120deg, var(--accent), var(--accent-dim));
   padding: 0.22rem 0.7rem;
   border-radius: 999px;
@@ -1091,7 +1091,7 @@ section + section::before {
   font-size: 2.4rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  background: linear-gradient(120deg, var(--accent) 0%, #ffd9a0 60%, var(--accent) 100%);
+  background: linear-gradient(120deg, var(--accent) 0%, #d3edb8 60%, var(--accent) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1153,7 +1153,7 @@ section + section::before {
 }
 
 .tl-item.active .tl-marker {
-  color: #241503;
+  color: #14260b;
   background: linear-gradient(140deg, var(--accent), var(--accent-dim));
   border-color: var(--accent);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 22px var(--accent-glow);
@@ -1186,7 +1186,7 @@ section + section::before {
   width: min(900px, 100vw);
   aspect-ratio: 2.2;
   background: radial-gradient(ellipse at center,
-    rgba(255, 180, 84, 0.11) 0%, transparent 65%);
+    rgba(143, 206, 95, 0.11) 0%, transparent 65%);
   filter: blur(50px);
   pointer-events: none;
 }
@@ -1229,7 +1229,7 @@ section + section::before {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #241503;
+  color: #14260b;
   background: linear-gradient(120deg, var(--accent), var(--accent-dim));
   border: none;
   border-radius: 999px;
@@ -1241,7 +1241,7 @@ section + section::before {
 
 .waitlist-form button:hover {
   transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 30px rgba(255, 180, 84, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 30px rgba(143, 206, 95, 0.3);
 }
 
 .social-links {
