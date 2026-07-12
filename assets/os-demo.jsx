@@ -19,7 +19,7 @@ const SPRING = "cubic-bezier(0.32, 0.72, 0, 1)";
 const IOS_FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif";
 const DROID_FONT = "'Inter', Roboto, 'Segoe UI', sans-serif";
 const MONO = "'JetBrains Mono', 'SF Mono', Consolas, monospace";
-const CYAN = "#38d4f5";
+const BRAND = "#ffb454";
 
 const relayAddr = () => "relay" + Math.random().toString(36).slice(2, 12) + "@nullberrysecure.net";
 
@@ -79,7 +79,7 @@ const SCRIPTS = [
     { d: "in", t: "morning check: all 4 seeds green, stem battery 82%" },
     { d: "out", t: "any packet loss overnight?" },
     { d: "in", t: "0.3% on L1, nothing on L2. dead drop cache is empty" },
-    { d: "out", t: "beautiful. quiet night on the bush" },
+    { d: "out", t: "beautiful. quiet night on the tree" },
   ],
 ];
 
@@ -102,7 +102,7 @@ function genContacts() {
   }));
 }
 
-const NODE_TYPES = { seed: { c: "#30d158", label: "Seed" }, stem: { c: "#60a5fa", label: "Stem" }, trunk: { c: "#ff9f0a", label: "Trunk" }, root: { c: CYAN, label: "Root" } };
+const NODE_TYPES = { seed: { c: "#30d158", label: "Seed" }, stem: { c: "#60a5fa", label: "Stem" }, trunk: { c: "#ff9f0a", label: "Trunk" }, root: { c: BRAND, label: "Root" } };
 const NODE_SPOTS = ["Ridge", "Garden", "Creek", "Barn", "Gate", "Meadow", "Oak", "North", "Well", "Quarry", "Bluff"];
 
 function genNodes() {
@@ -245,13 +245,13 @@ const Avatar = ({ name, hue, size = 44 }) => (
 const G_DARK = {
   name: "dark", bg: "#000000", surface: "#111214", surface2: "#1b1d20",
   text: "#e8eaed", text2: "#9aa0a6", text3: "#5f6368",
-  sep: "rgba(255,255,255,0.09)", accent: CYAN, ok: "#30d158",
+  sep: "rgba(255,255,255,0.09)", accent: BRAND, ok: "#30d158",
   warn: "#fdd663", danger: "#f28b82", key: "rgba(255,255,255,0.07)",
 };
 const G_LIGHT = {
   name: "light", bg: "#e9ebee", surface: "#ffffff", surface2: "#f1f3f4",
   text: "#17181a", text2: "#5f6368", text3: "#9aa0a6",
-  sep: "rgba(0,0,0,0.1)", accent: "#0b93b4", ok: "#188038",
+  sep: "rgba(0,0,0,0.1)", accent: "#9a6206", ok: "#188038",
   warn: "#b05a00", danger: "#c5221f", key: "rgba(0,0,0,0.06)",
 };
 
@@ -282,7 +282,7 @@ function GLock({ th, onUnlock, unread }) {
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", background: th.bg, zIndex: 30, fontFamily: DROID_FONT }}>
       <div style={{ height: 34 }} />
-      <img src="assets/logo-white.svg" alt="Nullberry" style={{ height: 22, marginTop: 26, opacity: 0.9, filter: th.name === "light" ? "invert(1)" : "none" }} />
+      <img src="assets/logo-white.svg" alt="Nullberry" style={{ height: 38, marginTop: 26, opacity: 0.94, filter: th.name === "light" ? "invert(1)" : "none" }} />
       <div style={{ fontSize: 56, fontWeight: 300, letterSpacing: -1, color: th.text, marginTop: 18, lineHeight: 1, fontFamily: DROID_FONT }}>{fmtTime(now)}</div>
       <div style={{ fontSize: 13, color: th.text2, marginTop: 6 }}>
         {unread > 0 ? unread + " new mesh message" + (unread > 1 ? "s" : "") : "mesh connected"}
@@ -308,7 +308,7 @@ function GLock({ th, onUnlock, unread }) {
 
 const G_APPS = [
   { id: "messages", label: "Messages", icon: P.msg },
-  { id: "bush", label: "Bush", icon: P.bush },
+  { id: "bush", label: "Tree", icon: P.bush },
   { id: "map", label: "Map", icon: P.map },
   { id: "terminal", label: "Terminal", icon: P.term },
   { id: "settings", label: "Settings", icon: P.gear },
@@ -320,7 +320,7 @@ function GLauncher({ th, onOpen, unread, nodesOnline }) {
       <div style={{ margin: "16px 16px 8px", padding: "13px 15px", borderRadius: 10, background: th.surface, border: `1px solid ${th.sep}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
           <div style={{ width: 6, height: 6, borderRadius: 3, background: th.ok, animation: "nbPulse 2s ease-in-out infinite" }} />
-          <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: 1.4, color: th.text2 }}>NULLBERRY BUSH</span>
+          <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: 1.4, color: th.text2 }}>NULLBERRY TREE</span>
         </div>
         <div style={{ fontSize: 14.5, fontWeight: 600, color: th.text }}>{nodesOnline} nodes online · all transports up</div>
       </div>
@@ -331,7 +331,7 @@ function GLauncher({ th, onOpen, unread, nodesOnline }) {
             <div style={{ width: 56, height: 56, borderRadius: 28, background: th.surface2, border: `1px solid ${th.sep}`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", color: th.text }}>
               <Icon d={app.icon} size={25} sw={1.6} />
               {app.id === "messages" && unread > 0 && (
-                <div style={{ position: "absolute", top: -3, right: -3, minWidth: 17, height: 17, borderRadius: 9, background: th.accent, color: "#00252e", fontSize: 10.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</div>
+                <div style={{ position: "absolute", top: -3, right: -3, minWidth: 17, height: 17, borderRadius: 9, background: th.accent, color: "#241503", fontSize: 10.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{unread}</div>
               )}
             </div>
             <span style={{ fontSize: 11, color: th.text2 }}>{app.label}</span>
@@ -404,7 +404,7 @@ function GMessages({ th, contacts, openConvo, send }) {
                 const out = m.d === "out";
                 return (
                   <div key={m.id} style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start", animation: i === active.msgs.length - 1 ? "nbBubbleIn 0.3s " + SPRING : "none" }}>
-                    <div style={{ maxWidth: "76%", padding: "7px 11px", borderRadius: 8, background: out ? th.accent : th.surface2, border: out ? "none" : `1px solid ${th.sep}`, color: out ? "#00252e" : th.text, fontSize: 13.5, lineHeight: 1.4, fontWeight: out ? 500 : 400 }}>{m.t}</div>
+                    <div style={{ maxWidth: "76%", padding: "7px 11px", borderRadius: 8, background: out ? th.accent : th.surface2, border: out ? "none" : `1px solid ${th.sep}`, color: out ? "#241503" : th.text, fontSize: 13.5, lineHeight: 1.4, fontWeight: out ? 500 : 400 }}>{m.t}</div>
                   </div>
                 );
               })}
@@ -421,7 +421,7 @@ function GMessages({ th, contacts, openConvo, send }) {
                 placeholder="Message the mesh"
                 style={{ flex: 1, borderRadius: 8, border: `1px solid ${th.sep}`, background: th.surface, color: th.text, fontFamily: DROID_FONT, fontSize: 13.5, padding: "8px 12px", outline: "none" }} />
               <button onClick={() => { if (draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }} style={{ width: 36, height: 36, borderRadius: 8, border: "none", cursor: "pointer", background: draft.trim() ? th.accent : th.surface2, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon d={P.send} size={16} color={draft.trim() ? "#00252e" : th.text3} sw={2.4} />
+                <Icon d={P.send} size={16} color={draft.trim() ? "#241503" : th.text3} sw={2.4} />
               </button>
             </div>
           </React.Fragment>
@@ -437,7 +437,7 @@ function GBush({ th, nodes, feed }) {
   const health = clamp(Math.round(140 + avgRssi * 0.9), 55, 99);
   return (
     <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
-      <GHeader th={th} title="Bush" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.ok }}>● LIVE</span>} />
+      <GHeader th={th} title="Tree" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.ok }}>● LIVE</span>} />
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px 44px" }}>
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           {[["ONLINE", online + "/" + nodes.length, th.accent], ["HEALTH", health + "%", health > 80 ? th.ok : th.warn], ["AVG dBm", avgRssi, th.text]].map(([l, v, c]) => (
@@ -487,7 +487,7 @@ function GMap({ th, nodes }) {
     x: cx + Math.cos(n.angle) * n.dist * (W / 2 - 32),
     y: cy + Math.sin(n.angle) * n.dist * (H / 2 - 46),
   })), [nodes.length]);
-  const line = th.name === "dark" ? "rgba(56,212,245,0.16)" : "rgba(11,147,180,0.25)";
+  const line = th.name === "dark" ? "rgba(255,180,84,0.16)" : "rgba(154,98,6,0.25)";
   return (
     <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
       <GHeader th={th} title="Mesh Map" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.text3 }}>{nodes.filter(n => n.online).length} UP</span>} />
@@ -531,15 +531,15 @@ function GTerminal({ th, feed }) {
     <div style={{ position: "absolute", inset: 0, background: "#000", display: "flex", flexDirection: "column" }}>
       <GHeader th={G_DARK} title="Terminal" />
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px 44px", fontFamily: MONO, fontSize: 10, lineHeight: 1.9 }}>
-        <div style={{ color: CYAN }}>nullberry@mark0:~$ nullrns status</div>
+        <div style={{ color: BRAND }}>nullberry@mark0:~$ nullrns status</div>
         <div style={{ color: "#9aa0a6" }}>NullRNS v0.4.1 · identity nb1·{Math.random().toString(36).slice(2, 8)}</div>
         <div style={{ color: "#9aa0a6" }}>transports: L1 ✓ L2 ✓ L3 ✓ L4 ✓ L5 ✓ L6 ✓ L7 ✓</div>
         <div style={{ color: "#9aa0a6" }}>hydra failover: armed · dead-drop cache: 0 pending</div>
-        <div style={{ color: CYAN, marginTop: 8 }}>nullberry@mark0:~$ tail -f /var/log/mesh</div>
+        <div style={{ color: BRAND, marginTop: 8 }}>nullberry@mark0:~$ tail -f /var/log/mesh</div>
         {[...feed].reverse().map(f => (
           <div key={f.id} style={{ color: "#5f6368" }}>[{f.time}] {f.text}</div>
         ))}
-        <span style={{ color: CYAN }}>▊</span>
+        <span style={{ color: BRAND }}>▊</span>
       </div>
     </div>
   );
@@ -551,7 +551,7 @@ const TRANSPORTS = ["LoRa 915 MHz", "LoRa 433 MHz", "WiFi Direct", "BLE Mesh", "
 function GToggle({ on, onChange, th }) {
   return (
     <button onClick={onChange} style={{ width: 40, height: 22, borderRadius: 4, border: `1px solid ${on ? th.accent : th.sep}`, cursor: "pointer", background: on ? th.accent : "transparent", position: "relative", transition: "all 0.2s", flexShrink: 0 }}>
-      <div style={{ position: "absolute", top: 2, left: on ? 19 : 2, width: 16, height: 16, borderRadius: 3, background: on ? "#00252e" : th.text3, transition: `left 0.2s ${SPRING}` }} />
+      <div style={{ position: "absolute", top: 2, left: on ? 19 : 2, width: 16, height: 16, borderRadius: 3, background: on ? "#241503" : th.text3, transition: `left 0.2s ${SPRING}` }} />
     </button>
   );
 }
@@ -565,7 +565,7 @@ function GSettings({ th, themeName, setThemeName, mode, setMode, transports, set
         <Sect label="APPEARANCE" />
         <div style={{ display: "flex", margin: "0 14px", gap: 8 }}>
           {["dark", "light"].map(m => (
-            <button key={m} onClick={() => setThemeName(m)} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: `1px solid ${themeName === m ? th.accent : th.sep}`, cursor: "pointer", fontFamily: MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: themeName === m ? th.accent : th.text2, background: themeName === m ? (th.name === "dark" ? "rgba(56,212,245,0.08)" : "rgba(11,147,180,0.08)") : "transparent" }}>{m}</button>
+            <button key={m} onClick={() => setThemeName(m)} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: `1px solid ${themeName === m ? th.accent : th.sep}`, cursor: "pointer", fontFamily: MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: themeName === m ? th.accent : th.text2, background: themeName === m ? (th.name === "dark" ? "rgba(255,180,84,0.08)" : "rgba(154,98,6,0.08)") : "transparent" }}>{m}</button>
           ))}
         </div>
         <Sect label="OPERATIONAL MODE" />
@@ -598,7 +598,7 @@ function GSettings({ th, themeName, setThemeName, mode, setMode, transports, set
           ))}
         </div>
         <div style={{ textAlign: "center", padding: "16px 0 4px" }}>
-          <img src="assets/logo-white.svg" alt="Nullberry" style={{ height: 14, margin: "0 auto", opacity: 0.4, filter: th.name === "light" ? "invert(1)" : "none" }} />
+          <img src="assets/logo-white.svg" alt="Nullberry" style={{ height: 24, margin: "0 auto", opacity: 0.55, filter: th.name === "light" ? "invert(1)" : "none" }} />
         </div>
       </div>
     </div>
@@ -631,14 +631,14 @@ function Mark1Demo() {
       width: "min(370px, calc(100vw - 40px))", aspectRatio: "370 / 800",
       borderRadius: 18, padding: 7, position: "relative",
       background: "linear-gradient(170deg, #23262a 0%, #0d0e10 40%, #16181b 100%)",
-      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.16), 0 26px 70px rgba(0,0,0,0.55), 0 0 60px rgba(56,212,245,0.06)",
+      boxShadow: "inset 0 1px 1px rgba(255,255,255,0.16), 0 26px 70px rgba(0,0,0,0.55), 0 0 60px rgba(255,180,84,0.06)",
     }}>
       {/* antenna bands */}
       <div style={{ position: "absolute", top: 60, left: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
       <div style={{ position: "absolute", top: 60, right: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
       <div style={{ position: "absolute", bottom: 90, left: -1, width: 1.6, height: 15, background: "#3a3d42" }} />
       <div style={{ position: "absolute", right: -2.5, top: "24%", width: 3, height: 58, borderRadius: 2, background: "#26282c" }} />
-      <div style={{ position: "absolute", right: -2.5, top: "35%", width: 3, height: 34, borderRadius: 2, background: "#0e93b8" }} />
+      <div style={{ position: "absolute", right: -2.5, top: "35%", width: 3, height: 34, borderRadius: 2, background: "#d98a2b" }} />
 
       <div className="nb-screen" style={{ position: "absolute", inset: 7, borderRadius: 12, overflow: "hidden", background: th.bg, transition: "background 0.5s" }}>
         {!locked && <GStatus th={th} batt={batt} />}
@@ -730,7 +730,7 @@ function Island({ activity }) {
             <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 9.5, fontFamily: IOS_FONT, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{activity.kind}</div>
             <div style={{ color: "#fff", fontSize: 12.5, fontFamily: IOS_FONT, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activity.text}</div>
           </div>
-          <div style={{ width: 7, height: 7, borderRadius: 4, background: CYAN, boxShadow: `0 0 8px ${CYAN}`, flexShrink: 0, animation: "nbPulse 1.4s ease-in-out infinite" }} />
+          <div style={{ width: 7, height: 7, borderRadius: 4, background: BRAND, boxShadow: `0 0 8px ${BRAND}`, flexShrink: 0, animation: "nbPulse 1.4s ease-in-out infinite" }} />
         </div>
       )}
     </div>
@@ -1102,7 +1102,7 @@ function IFaceTime({ th, contacts }) {
           <div style={{ fontFamily: IOS_FONT, fontSize: 24, fontWeight: 700, color: "#fff", marginTop: 16 }}>{call.name}</div>
           <div style={{ fontFamily: MONO, fontSize: 9.5, color: "rgba(255,255,255,0.5)", marginTop: 5 }}>{call.addr}</div>
           <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: "rgba(255,255,255,0.75)", marginTop: 14, display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 7, height: 7, borderRadius: 4, background: CYAN, animation: "nbPulse 1.2s infinite" }} />
+            <div style={{ width: 7, height: 7, borderRadius: 4, background: BRAND, animation: "nbPulse 1.2s infinite" }} />
             {sec < 3 ? "Connecting via mesh relay…" : `Mesh audio · ${String(Math.floor(sec / 60)).padStart(1, "0")}:${String(sec % 60).padStart(2, "0")}`}
           </div>
           <div style={{ flex: 1 }} />
@@ -1129,7 +1129,7 @@ function INullberryApp({ th, nodes, feed }) {
     <div style={{ background: th.card, backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRadius: 16, border: `0.5px solid ${th.glassBorder}`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)", padding: "13px 14px", marginBottom: 12, ...style }}>{children}</div>
   );
   return (
-    <div style={{ position: "absolute", inset: 0, background: th.name === "dark" ? "radial-gradient(110% 60% at 80% 0%, rgba(56,212,245,0.09), transparent 60%), #05080b" : "radial-gradient(110% 60% at 80% 0%, rgba(56,212,245,0.16), transparent 60%), #eef4f6", display: "flex", flexDirection: "column" }}>
+    <div style={{ position: "absolute", inset: 0, background: th.name === "dark" ? "radial-gradient(110% 60% at 80% 0%, rgba(255,180,84,0.09), transparent 60%), #05080b" : "radial-gradient(110% 60% at 80% 0%, rgba(255,180,84,0.16), transparent 60%), #eef4f6", display: "flex", flexDirection: "column" }}>
       <INavHeader th={th} title="Nullberry" right={<span style={{ fontFamily: MONO, fontSize: 9, color: "#30d158" }}>● PAIRED</span>} />
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px 46px" }}>
         <Card>
@@ -1142,7 +1142,7 @@ function INullberryApp({ th, nodes, feed }) {
               <div style={{ fontFamily: MONO, fontSize: 9, color: th.text3, marginTop: 2 }}>Nullberry OS 0.4.1 · L1–L7 up</div>
               <div style={{ display: "flex", gap: 12, marginTop: 7 }}>
                 {[["BAT", "87%"], ["SIG", "−64 dBm"], ["HOPS", "direct"]].map(([k, v]) => (
-                  <div key={k}><span style={{ fontFamily: MONO, fontSize: 8, color: th.text3 }}>{k} </span><span style={{ fontFamily: MONO, fontSize: 10, color: CYAN, fontWeight: 600 }}>{v}</span></div>
+                  <div key={k}><span style={{ fontFamily: MONO, fontSize: 8, color: th.text3 }}>{k} </span><span style={{ fontFamily: MONO, fontSize: 10, color: BRAND, fontWeight: 600 }}>{v}</span></div>
                 ))}
               </div>
             </div>
@@ -1156,7 +1156,7 @@ function INullberryApp({ th, nodes, feed }) {
               <Icon d={P.rotate} size={12} color={th.blue} sw={2.2} /> Rotate
             </button>
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, color: th.text, wordBreak: "break-all", background: th.name === "dark" ? "rgba(56,212,245,0.06)" : "rgba(13,111,140,0.07)", border: `1px solid ${th.name === "dark" ? "rgba(56,212,245,0.18)" : "rgba(13,111,140,0.2)"}`, borderRadius: 8, padding: "8px 10px", animation: "nbFadeIn 0.4s ease" }} key={myAddr}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: th.text, wordBreak: "break-all", background: th.name === "dark" ? "rgba(255,180,84,0.06)" : "rgba(138,85,20,0.07)", border: `1px solid ${th.name === "dark" ? "rgba(255,180,84,0.18)" : "rgba(138,85,20,0.2)"}`, borderRadius: 8, padding: "8px 10px", animation: "nbFadeIn 0.4s ease" }} key={myAddr}>
             {myAddr}
           </div>
           <div style={{ fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, marginTop: 7, lineHeight: 1.5 }}>
@@ -1164,7 +1164,7 @@ function INullberryApp({ th, nodes, feed }) {
           </div>
         </Card>
         <Card>
-          <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, marginBottom: 8 }}>Bush · {online}/{nodes.length} online</div>
+          <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, marginBottom: 8 }}>Tree · {online}/{nodes.length} online</div>
           {nodes.slice(0, 5).map((n, i) => (
             <div key={n.id} style={{ display: "flex", alignItems: "center", gap: 9, padding: "6.5px 0", borderBottom: i < 4 ? `0.5px solid ${th.sep}` : "none", opacity: n.online ? 1 : 0.45 }}>
               <div style={{ width: 8, height: 8, borderRadius: 4, background: NODE_TYPES[n.type].c, boxShadow: n.online ? `0 0 7px ${NODE_TYPES[n.type].c}` : "none" }} />
@@ -1176,7 +1176,7 @@ function INullberryApp({ th, nodes, feed }) {
         <Card style={{ marginBottom: 0 }}>
           <div style={{ fontFamily: IOS_FONT, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: th.text2, marginBottom: 7 }}>Relay activity</div>
           {feed.slice(0, 4).map((f, i) => (
-            <div key={f.id} style={{ fontFamily: MONO, fontSize: 9, lineHeight: 1.9, color: i === 0 ? CYAN : th.text3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div key={f.id} style={{ fontFamily: MONO, fontSize: 9, lineHeight: 1.9, color: i === 0 ? BRAND : th.text3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               <span style={{ opacity: 0.55 }}>{f.time}</span>  {f.text}
             </div>
           ))}
@@ -1245,7 +1245,7 @@ function IPhoneDemo() {
     const t = setInterval(() => {
       if (!locked && Math.random() < 0.35) {
         const n = pick(nodes.filter(x => x.online));
-        if (n) notifyIsland({ kind: "MARK-1 · Bush", text: `${n.id} · ${n.rssi} dBm`, initial: null });
+        if (n) notifyIsland({ kind: "MARK-1 · Tree", text: `${n.id} · ${n.rssi} dBm`, initial: null });
       }
     }, 10000);
     return () => clearInterval(t);
