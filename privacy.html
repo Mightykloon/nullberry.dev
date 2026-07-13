@@ -97,7 +97,7 @@
   <main class="legal-main">
     <div class="container narrow">
       <h1>Privacy Policy</h1>
-      <p class="legal-effective">Effective date: July 7, 2026</p>
+      <p class="legal-effective">Effective date: July 8, 2026</p>
 
       <p>Nullberry LLC ("Nullberry", "we", "us") operates nullberry.dev (the "Site"). We build communication hardware for people who value independence from infrastructure, and that philosophy extends to how this Site treats your data: we collect the absolute minimum, and nothing happens behind your back. This policy explains what is involved when you visit.</p>
 
@@ -115,12 +115,14 @@
       <p>To render, the Site loads resources from third-party content delivery networks. When your browser requests these files, those services receive your IP address and standard request headers, as is inherent to any web request:</p>
       <ul>
         <li><strong>Google Fonts</strong> (fonts.googleapis.com, fonts.gstatic.com), operated by Google LLC. See the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</li>
-        <li><strong>unpkg</strong> (unpkg.com), a CDN operated on Cloudflare infrastructure that serves the JavaScript libraries powering the interactive OS demo.</li>
+        <li><strong>unpkg</strong> (unpkg.com), a CDN operated on Cloudflare infrastructure that serves the JavaScript libraries (React, Babel, Leaflet) powering the interactive demos.</li>
+        <li><strong>OpenStreetMap</strong> (tile.openstreetmap.org), operated by the OpenStreetMap Foundation, which serves the street-map imagery in the demo Mesh Map. See the <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OSMF Privacy Policy</a>.</li>
       </ul>
       <p>These requests deliver static files only; we attach no identifiers to them.</p>
 
-      <h2>4. The OS Demo</h2>
-      <p>The interactive Nullberry OS demo on this Site runs entirely in your browser. Anything you type into it (including the demo PIN) stays on your device, is not transmitted to us or anyone else, and disappears when you leave the page.</p>
+      <h2>4. The Interactive Demos and Approximate Location</h2>
+      <p>The interactive device demos on this Site run entirely in your browser. Anything you type into them (including the demo PIN and demo messages) stays on your device, is not transmitted to us or anyone else, and disappears when you leave the page.</p>
+      <p>One demo feature uses your approximate location: when the Mesh Map opens, your browser requests a <strong>city-level</strong> location estimate derived from your IP address from <strong>geojs.io</strong> (or <strong>ipwho.is</strong> as a fallback) and uses it once, on your device, to center the demo map and place fictional mesh nodes on nearby streets. This estimate is never sent to Nullberry, never stored, and never combined with any other data. It is not GPS: no device location permission is requested, and your browser's location services are not accessed. If the lookup fails or is blocked, the map simply centers on Simi Valley, California. Those geolocation providers receive your IP address as part of the request, as any web server does; see the <a href="https://www.geojs.io/privacy/" target="_blank" rel="noopener">GeoJS privacy policy</a>.</p>
 
       <h2>5. External Links</h2>
       <p>The Site links to third-party destinations, including GitHub and Discord. Those services operate under their own privacy policies once you leave the Site, and we are not responsible for their practices.</p>

@@ -546,51 +546,95 @@ function GBush({ th, nodes, feed }) {
   );
 }
 
-function GMap({ th, nodes }) {
-  const [pulseIdx, setPulseIdx] = useState(0);
+/* approximate (city-level) visitor location from IP — no permission
+   prompt, nothing stored; falls back to Nullberry HQ if unavailable */
+let GEO_CACHE = null;
+function useApproxGeo() {
+  const [geo, setGeo] = useState(GEO_CACHE);
   useEffect(() => {
-    const t = setInterval(() => setPulseIdx(i => (i + 1) % nodes.length), 1900);
-    return () => clearInterval(t);
-  }, [nodes.length]);
-  const W = 330, H = 420, cx = W / 2, cy = H / 2;
-  const pos = useMemo(() => nodes.map(n => ({
-    x: cx + Math.cos(n.angle) * n.dist * (W / 2 - 32),
-    y: cy + Math.sin(n.angle) * n.dist * (H / 2 - 46),
+    if (GEO_CACHE) return;
+    let dead = false;
+    const fallback = { lat: 34.2694, lon: -118.7815, city: "Simi Valley" };
+    fetch("https://get.geojs.io/v1/ip/geo.json")
+      .then(r => r.json())
+      .then(d => { if (!dead) { GEO_CACHE = { lat: +d.latitude, lon: +d.longitude, city: d.city || d.region || "your area" }; setGeo(GEO_CACHE); } })
+      .catch(() => fetch("https://ipwho.is/")
+        .then(r => r.json())
+        .then(d => { if (!dead) { GEO_CACHE = { lat: d.latitude, lon: d.longitude, city: d.city || "your area" }; setGeo(GEO_CACHE); } })
+        .catch(() => { if (!dead) { GEO_CACHE = fallback; setGeo(fallback); } }));
+    return () => { dead = true; };
+  }, []);
+  return geo;
+}
+
+function GMap({ th, nodes }) {
+  const mapEl = useRef(null);
+  const mapRef = useRef(null);
+  const geo = useApproxGeo();
+  /* fixed random spread per mount: nodes land on real streets around the visitor */
+  const spread = useMemo(() => nodes.map(n => ({
+    dLat: (Math.sin(n.angle) * n.dist) * 0.055,
+    dLon: (Math.cos(n.angle) * n.dist) * 0.07,
   })), [nodes.length]);
-  const line = th.name === "dark" ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.25)";
+
+  useEffect(() => {
+    if (!geo || !window.L || !mapEl.current || mapRef.current) return;
+    const map = window.L.map(mapEl.current, { zoomControl: false, attributionControl: false, dragging: true, scrollWheelZoom: false });
+    map.setView([geo.lat, geo.lon], 12);
+    window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    mapRef.current = map;
+
+    const pts = nodes.map((n, i) => [geo.lat + spread[i].dLat, geo.lon + spread[i].dLon]);
+    /* mesh links to nearest neighbor */
+    pts.forEach((p, i) => {
+      if (!nodes[i].online) return;
+      let best = -1, bd = 1e9;
+      pts.forEach((q, j) => { if (j !== i && nodes[j].online) { const dd = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2; if (dd < bd) { bd = dd; best = j; } } });
+      if (best >= 0) window.L.polyline([p, pts[best]], { color: "#222", weight: 1.4, opacity: 0.55, dashArray: "4 5" }).addTo(map);
+    });
+    nodes.forEach((n, i) => {
+      const m = window.L.circleMarker(pts[i], {
+        radius: n.type === "root" ? 9 : n.type === "trunk" ? 7 : 5.5,
+        color: "#111", weight: 2, fillColor: NODE_TYPES[n.type].c, fillOpacity: n.online ? 1 : 0.35,
+      }).addTo(map);
+      m.bindTooltip(`${n.id} · ${n.online ? n.rssi + " dBm" : "offline"}`, { direction: "top", offset: [0, -6] });
+    });
+    const you = window.L.circleMarker([geo.lat, geo.lon], { radius: 9, color: "#fff", weight: 3, fillColor: "#111", fillOpacity: 1 }).addTo(map);
+    you.bindTooltip("YOU", { permanent: true, direction: "bottom", offset: [0, 8], className: "nb-you-tip" });
+
+    return () => { map.remove(); mapRef.current = null; };
+  }, [geo]);
+
+  /* grayscale the street tiles so the map matches the OS */
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const pane = mapRef.current.getPane("tilePane");
+    if (pane) pane.style.filter = th.name === "dark"
+      ? "grayscale(1) invert(1) brightness(0.86) contrast(1.05)"
+      : "grayscale(1) brightness(1.02)";
+  }, [geo, th.name]);
+
   return (
     <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column", fontFamily: DROID_FONT }}>
-      <GHeader th={th} title="Mesh Map" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.text3 }}>{nodes.filter(n => n.online).length} UP</span>} />
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-          {[56, 104, 156].map((r, i) => <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={line} strokeDasharray="2 6" />)}
-          {pos.map((p, i) => {
-            let best = -1, bd = 1e9;
-            pos.forEach((q, j) => { if (j !== i) { const dd = (p.x - q.x) ** 2 + (p.y - q.y) ** 2; if (dd < bd) { bd = dd; best = j; } } });
-            return best >= 0 && nodes[i].online && nodes[best].online ? <line key={"l" + i} x1={p.x} y1={p.y} x2={pos[best].x} y2={pos[best].y} stroke={line} strokeWidth="1" /> : null;
-          })}
-          {pos.map((p, i) => {
-            const n = nodes[i], c = NODE_TYPES[n.type].c;
-            return (
-              <g key={"n" + i} opacity={n.online ? 1 : 0.3}>
-                {i === pulseIdx && n.online && <circle cx={p.x} cy={p.y} r="8" fill="none" stroke={c} opacity="0.7"><animate attributeName="r" from="5" to="20" dur="1.6s" repeatCount="indefinite" /><animate attributeName="opacity" from="0.7" to="0" dur="1.6s" repeatCount="indefinite" /></circle>}
-                <rect x={p.x - (n.type === "root" ? 6 : 4)} y={p.y - (n.type === "root" ? 6 : 4)} width={n.type === "root" ? 12 : 8} height={n.type === "root" ? 12 : 8} fill={c} transform={`rotate(45 ${p.x} ${p.y})`} />
-                <text x={p.x} y={p.y - 12} textAnchor="middle" fill={th.text2} fontSize="7.5" fontFamily={MONO}>{n.id}</text>
-              </g>
-            );
-          })}
-          <circle cx={cx} cy={cy} r="7" fill={th.accent}><animate attributeName="r" values="6;8;6" dur="2.4s" repeatCount="indefinite" /></circle>
-          <circle cx={cx} cy={cy} r="3" fill={th.name === "dark" ? "#000" : "#fff"} />
-          <text x={cx} y={cy + 22} textAnchor="middle" fill={th.text} fontSize="8.5" fontWeight="700" fontFamily={MONO}>YOU</text>
-        </svg>
-      </div>
-      <div style={{ display: "flex", justifyContent: "center", gap: 14, padding: "0 0 46px" }}>
-        {Object.values(NODE_TYPES).map(v => (
-          <div key={v.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <div style={{ width: 7, height: 7, background: v.c, transform: "rotate(45deg)" }} />
-            <span style={{ fontFamily: MONO, fontSize: 9, color: th.text2 }}>{v.label.toUpperCase()}</span>
+      <GHeader th={th} title="Mesh Map" right={<span style={{ fontFamily: MONO, fontSize: 9, color: th.text3 }}>{geo ? geo.city.toUpperCase() : "LOCATING"} · {nodes.filter(n => n.online).length} UP</span>} />
+      <div style={{ flex: 1, position: "relative" }}>
+        <div ref={mapEl} style={{ position: "absolute", inset: 0 }} />
+        {!geo && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: MONO, fontSize: 10, color: th.text3, letterSpacing: 2 }}>
+            TRIANGULATING…
           </div>
-        ))}
+        )}
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 500, display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 10px 40px", pointerEvents: "none" }}>
+          <div style={{ display: "flex", gap: 10, background: th.name === "dark" ? "rgba(0,0,0,0.72)" : "rgba(255,255,255,0.8)", borderRadius: 6, padding: "5px 9px" }}>
+            {Object.values(NODE_TYPES).map(v => (
+              <div key={v.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ width: 7, height: 7, borderRadius: 4, background: v.c, border: "1.5px solid #111" }} />
+                <span style={{ fontFamily: MONO, fontSize: 8, color: th.text2 }}>{v.label.toUpperCase()}</span>
+              </div>
+            ))}
+          </div>
+          <span style={{ fontFamily: MONO, fontSize: 7, color: th.text3, background: th.name === "dark" ? "rgba(0,0,0,0.72)" : "rgba(255,255,255,0.8)", borderRadius: 4, padding: "2px 5px" }}>© OpenStreetMap</span>
+        </div>
       </div>
     </div>
   );
@@ -765,15 +809,35 @@ const I_WALL = {
   light: "radial-gradient(90% 60% at 75% 12%, rgba(120,130,255,0.7), transparent 60%), radial-gradient(80% 55% at 20% 35%, rgba(90,200,250,0.65), transparent 65%), radial-gradient(90% 60% at 70% 78%, rgba(255,120,150,0.5), transparent 60%), radial-gradient(70% 50% at 25% 95%, rgba(255,204,120,0.5), transparent 65%), linear-gradient(170deg, #cfd8ff 0%, #eef1f8 100%)",
 };
 
-function IStatusBar({ th, batt, onIsland }) {
+/* iOS-style battery with the percentage inside the body */
+const IosBattery = ({ pct, color }) => (
+  <svg width="30" height="14" viewBox="0 0 30 14">
+    <rect x="0.5" y="0.5" width="25" height="13" rx="4" fill={color} opacity="0.35" />
+    <rect x="0.5" y="0.5" width={25 * clamp(pct, 0, 100) / 100} height="13" rx="4" fill={pct <= 20 ? "#ff453a" : color} opacity="0.9" />
+    <text x="13" y="10.4" textAnchor="middle" fontSize="9.5" fontWeight="700" fontFamily={IOS_FONT} fill={pct > 45 ? (color === "#000" ? "#fff" : "#000") : color}>{Math.round(pct)}</text>
+    <path d="M27 4.5v5c1.1-.3 1.8-1.3 1.8-2.5S28.1 4.8 27 4.5z" fill={color} opacity="0.4" />
+  </svg>
+);
+
+/* location-services arrow (appears beside the time when location is active) */
+const LocArrow = ({ color }) => (
+  <svg width="10" height="10" viewBox="0 0 24 24">
+    <path d="M2.5 10.5L21.5 2.5 13.5 21.5 11 13z" fill={color} />
+  </svg>
+);
+
+function IStatusBar({ th, batt }) {
   const now = useNow(5000);
   return (
-    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 50, display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 24px 5px", zIndex: 40, pointerEvents: "none", fontFamily: IOS_FONT }}>
-      <div style={{ width: 92, textAlign: "center", fontSize: 14.5, fontWeight: 600, color: th.statusText }}>{fmtTime(now)}</div>
-      <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 50, display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 22px 5px", zIndex: 40, pointerEvents: "none", fontFamily: IOS_FONT }}>
+      <div style={{ width: 98, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+        <span style={{ fontSize: 14.5, fontWeight: 500, letterSpacing: -0.1, color: th.statusText, fontVariantNumeric: "tabular-nums" }}>{fmtTime(now)}</span>
+        <LocArrow color={th.statusText} />
+      </div>
+      <div style={{ width: 104, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
         <SignalBars color={th.statusText} />
-        <span style={{ fontSize: 10.5, fontWeight: 600, color: th.statusText }}>5G</span>
-        <BatteryIcon pct={batt} color={th.statusText} />
+        <span style={{ fontSize: 11, fontWeight: 400, color: th.statusText }}>5G</span>
+        <IosBattery pct={batt} color={th.statusText} />
       </div>
     </div>
   );
@@ -1047,56 +1111,124 @@ function INavHeader({ th, title, onBack, sub, right, big }) {
   );
 }
 
+/* iOS contact card sheet: the ONLY place relay addresses are revealed */
+function IContactCard({ th, c, onClose }) {
+  const ActionBtn = ({ icon, label }) => (
+    <div style={{ flex: 1, background: th.cardSolid, borderRadius: 10, padding: "9px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+      <Icon d={icon} size={17} color={th.blue} sw={1.9} />
+      <span style={{ fontFamily: IOS_FONT, fontSize: 10, color: th.blue }}>{label}</span>
+    </div>
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 40, background: th.grouped, animation: "nbSheetUp 0.4s " + SPRING, display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "58px 16px 8px", display: "flex", justifyContent: "flex-end" }}>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: th.blue, fontFamily: IOS_FONT, fontSize: 16, fontWeight: 600, padding: 0 }}>Done</button>
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "4px 16px 50px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16 }}>
+          <Avatar name={c.name} hue={c.hue} size={84} />
+          <div style={{ fontFamily: IOS_FONT, fontSize: 22, fontWeight: 700, color: th.text, marginTop: 10 }}>{c.name}</div>
+          {c.kind === "relay" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+              <Icon d={P.shield} size={11} color={th.text2} sw={2.2} />
+              <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text2 }}>Nullberry verified contact</span>
+            </div>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <ActionBtn icon={P.msg} label="message" />
+          <ActionBtn icon={P.phone} label="call" />
+          <ActionBtn icon={P.video} label="video" />
+          <ActionBtn icon={["M2 7l10 6 10-6", "M2 5h20v14H2z"]} label="mail" />
+        </div>
+        <div style={{ background: th.cardSolid, borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
+          <div style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.blue, marginBottom: 3 }}>{c.kind === "relay" ? "Nullberry Relay" : "mobile"}</div>
+          <div style={{ fontFamily: c.kind === "relay" ? MONO : IOS_FONT, fontSize: c.kind === "relay" ? 11.5 : 15, color: c.kind === "relay" ? th.text : th.blue, wordBreak: "break-all" }}>{c.addr}</div>
+        </div>
+        {c.kind === "relay" && (
+          <div style={{ background: th.cardSolid, borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
+            <div style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.blue, marginBottom: 3 }}>routing</div>
+            <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: th.text, lineHeight: 1.5 }}>Messages to this contact leave through your paired MARK-1 as anonymous relay mail. Their real identity never touches Apple or carrier servers.</div>
+          </div>
+        )}
+        <div style={{ background: th.cardSolid, borderRadius: 12, overflow: "hidden" }}>
+          {["Send My Current Location", "Share Contact", c.kind === "relay" ? "Rotate Relay Address" : "Block this Caller"].map((r, i, arr) => (
+            <div key={r} style={{ fontFamily: IOS_FONT, fontSize: 14.5, color: r.startsWith("Block") ? th.red : th.blue, padding: "11px 14px", borderBottom: i < arr.length - 1 ? `0.5px solid ${th.sep}` : "none" }}>{r}</div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function IMessages({ th, contacts, openConvo, send }) {
   const [activeId, setActiveId] = useState(null);
   const [draft, setDraft] = useState("");
+  const [showContact, setShowContact] = useState(false);
   const scrollRef = useRef(null);
   const active = contacts.find(c => c.id === activeId);
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [activeId, active && active.msgs.length, active && active.typing]);
   return (
     <div style={{ position: "absolute", inset: 0, background: th.bg, overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, transform: active ? "translateX(-28%)" : "none", transition: `transform 0.45s ${SPRING}`, display: "flex", flexDirection: "column" }}>
-        <INavHeader th={th} title="Messages" />
+        <INavHeader th={th} title="Messages" right={
+          <div style={{ width: 30, height: 30, borderRadius: 15, background: th.name === "dark" ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.blue} strokeWidth="2" strokeLinecap="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
+          </div>
+        } />
         <div style={{ flex: 1, overflowY: "auto", paddingBottom: 44 }}>
+          {/* search field */}
+          <div style={{ margin: "8px 14px 4px", borderRadius: 10, background: th.name === "dark" ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", display: "flex", alignItems: "center", gap: 6, padding: "7px 10px" }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={th.text3} strokeWidth="2.4" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            <span style={{ fontFamily: IOS_FONT, fontSize: 14, color: th.text3 }}>Search</span>
+          </div>
           {contacts.map(c => (
-            <button key={c.id} onClick={() => { openConvo(c.id); setActiveId(c.id); }} style={{ display: "flex", gap: 11, alignItems: "center", width: "100%", padding: "9px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+            <button key={c.id} onClick={() => { openConvo(c.id); setActiveId(c.id); }} style={{ display: "flex", gap: 11, alignItems: "center", width: "100%", padding: "9px 14px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
               <div style={{ width: 10, display: "flex", justifyContent: "center", flexShrink: 0 }}>
                 {c.unread > 0 && <div style={{ width: 9, height: 9, borderRadius: 5, background: th.blue }} />}
               </div>
-              <Avatar name={c.name} hue={c.hue} size={42} />
+              <Avatar name={c.name} hue={c.hue} size={44} />
               <div style={{ flex: 1, minWidth: 0, borderBottom: `0.5px solid ${th.sep}`, paddingBottom: 9 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <span style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 15, color: th.text, display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 15.5, color: th.text, display: "flex", alignItems: "center", gap: 5 }}>
                     {c.name}
-                    {c.kind === "relay" && <Icon d={P.shield} size={11} color={th.text2} sw={2.2} />}
+                    {c.kind === "relay" && <Icon d={P.shield} size={11} color={th.text3} sw={2.2} />}
                   </span>
-                  <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text3 }}>{c.time}</span>
+                  <span style={{ fontFamily: IOS_FONT, fontSize: 12.5, color: th.text3, display: "flex", alignItems: "center", gap: 2 }}>
+                    {c.time}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={th.text3} strokeWidth="2.6" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
+                  </span>
                 </div>
-                {c.kind === "relay" ? (
-                  <div style={{ fontFamily: MONO, fontSize: 8.5, color: th.text3, margin: "1px 0 2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 200 }}>{c.addr}</div>
-                ) : (
-                  <div style={{ fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, margin: "1px 0 2px" }}>{c.addr}</div>
-                )}
-                <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: th.text2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 205 }}>
+                <div style={{ fontFamily: IOS_FONT, fontSize: 13.5, color: th.text2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 210, lineHeight: 1.45, minHeight: 38 }}>
                   {c.typing ? "typing…" : c.msgs[c.msgs.length - 1].t}
                 </div>
               </div>
             </button>
           ))}
-          <div style={{ textAlign: "center", padding: "12px 16px", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, lineHeight: 1.6 }}>
-            <Icon d={P.shield} size={10} color={th.text3} sw={2.2} style={{ display: "inline-block", verticalAlign: "-1px", marginRight: 3 }} />
-            contacts relay anonymously through nullberrysecure.net · others are regular iMessage
-          </div>
         </div>
       </div>
       <div style={{ position: "absolute", inset: 0, background: th.bg, transform: active ? "none" : "translateX(102%)", transition: `transform 0.45s ${SPRING}`, display: "flex", flexDirection: "column", boxShadow: "-12px 0 30px rgba(0,0,0,0.22)" }}>
         {active && (
           <React.Fragment>
-            <INavHeader th={th} onBack={() => setActiveId(null)} title={active.name} sub={active.addr}
-              right={active.kind === "relay" ? <Icon d={P.shield} size={18} color={th.blue} sw={1.9} /> : <Icon d={P.video} size={19} color={th.blue} sw={1.9} />} />
+            {/* iOS thread header: back + centered tappable avatar/name + video */}
+            <div style={{ padding: "50px 12px 6px", display: "flex", alignItems: "flex-end", background: th.blur, backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderBottom: `0.5px solid ${th.sep}`, position: "relative", zIndex: 5 }}>
+              <button onClick={() => { setShowContact(false); setActiveId(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: th.blue, display: "flex", alignItems: "center", padding: "0 0 12px" }}>
+                <Icon d={P.back} size={24} color={th.blue} sw={2.4} />
+              </button>
+              <button onClick={() => setShowContact(true)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: 0 }}>
+                <Avatar name={active.name} hue={active.hue} size={42} />
+                <span style={{ fontFamily: IOS_FONT, fontSize: 11, color: th.text, display: "flex", alignItems: "center", gap: 2 }}>
+                  {active.name}
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={th.text3} strokeWidth="3" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
+                </span>
+              </button>
+              <div style={{ padding: "0 4px 12px" }}>
+                <Icon d={P.video} size={22} color={th.blue} sw={1.8} />
+              </div>
+            </div>
             <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "12px 13px 6px", display: "flex", flexDirection: "column", gap: 4 }}>
               <div style={{ textAlign: "center", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, margin: "3px 0 9px" }}>
-                {active.kind === "relay" ? "Contact verified · relay identity pinned" : "iMessage"}
+                {active.kind === "relay" ? "Nullberry Relay" : "iMessage"}
               </div>
               {active.msgs.map((m, i) => {
                 const out = m.d === "out";
@@ -1126,6 +1258,7 @@ function IMessages({ th, contacts, openConvo, send }) {
                 <Icon d={P.send} size={16} color={draft.trim() ? "#fff" : th.text3} sw={2.4} />
               </button>
             </div>
+            {showContact && <IContactCard th={th} c={active} onClose={() => setShowContact(false)} />}
           </React.Fragment>
         )}
       </div>
@@ -1381,6 +1514,8 @@ const sharedKeyframes = `
   @keyframes nbBubbleIn { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
   @keyframes nbTyping { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
   @keyframes nbNudge { 0%,100% { transform: scale(1); } 40% { transform: scale(0.9); } 70% { transform: scale(1.04); } }
+  @keyframes nbSheetUp { from { opacity: 0; transform: translateY(10%); } to { opacity: 1; transform: none; } }
+  .leaflet-container { background: #111; font-family: inherit; }
   .nb-screen::-webkit-scrollbar, .nb-screen *::-webkit-scrollbar { width: 0; height: 0; }
 `;
 const styleTag = document.createElement("style");
