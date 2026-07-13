@@ -125,6 +125,7 @@ const SMS_SCRIPTS = [
 ];
 
 const phoneNum = () => `+1 (805) 555-0${irnd(100, 199)}`;
+const bday = () => `${pick(["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])} ${irnd(1, 28)}, ${irnd(1979, 2004)}`;
 
 function genContacts() {
   const names = shuffle(NAME_POOL).slice(0, SCRIPTS.length);
@@ -134,6 +135,7 @@ function genContacts() {
     kind: "relay",
     name,
     addr: relayAddr(),
+    bday: bday(),
     hue: AVATAR_HUES[i % AVATAR_HUES.length],
     time: TIMES[i % TIMES.length],
     unread: i < 2 ? irnd(1, 3) : 0,
@@ -154,6 +156,7 @@ function genIosContacts() {
     kind: "sms",
     name: s.name || spareNames[spareIdx++],
     addr: phoneNum(),
+    bday: bday(),
     hue: AVATAR_HUES[(i + 4) % AVATAR_HUES.length],
     time: pick(["5m", "19m", "44m", "2h", "Yesterday"]),
     unread: i === 0 ? 1 : 0,
@@ -821,8 +824,8 @@ const IosBattery = ({ pct, color }) => (
 
 /* location-services arrow (appears beside the time when location is active) */
 const LocArrow = ({ color }) => (
-  <svg width="10" height="10" viewBox="0 0 24 24">
-    <path d="M2.5 10.5L21.5 2.5 13.5 21.5 11 13z" fill={color} />
+  <svg width="14" height="14" viewBox="0 0 24 24" style={{ marginTop: 1 }}>
+    <path d="M2 10.8L22 2 13.2 22l-2.6-8.6z" fill={color} stroke={color} strokeWidth="1.6" strokeLinejoin="round" />
   </svg>
 );
 
@@ -1111,51 +1114,95 @@ function INavHeader({ th, title, onBack, sub, right, big }) {
   );
 }
 
-/* iOS contact card sheet: the ONLY place relay addresses are revealed */
+/* iOS switch */
+const ISwitch = ({ on, th }) => {
+  const [v, setV] = useState(on);
+  return (
+    <button onClick={() => setV(!v)} style={{ width: 46, height: 27, borderRadius: 14, border: "none", cursor: "pointer", background: v ? "#30d158" : (th.name === "dark" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.12)"), position: "relative", transition: "background 0.25s", flexShrink: 0 }}>
+      <div style={{ position: "absolute", top: 2, left: v ? 21 : 2, width: 23, height: 23, borderRadius: 12, background: "#fff", boxShadow: "0 2px 6px rgba(0,0,0,0.3)", transition: `left 0.25s ${SPRING}` }} />
+    </button>
+  );
+};
+
+/* iOS conversation-details page — pure stock. The relay address only
+   appears here, as an ordinary email contact point. */
+const CARD_TABS = ["Info", "Backgrounds", "Photos", "Links", "Documents", "Locations"];
 function IContactCard({ th, c, onClose }) {
-  const ActionBtn = ({ icon, label }) => (
-    <div style={{ flex: 1, background: th.cardSolid, borderRadius: 10, padding: "9px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-      <Icon d={icon} size={17} color={th.blue} sw={1.9} />
-      <span style={{ fontFamily: IOS_FONT, fontSize: 10, color: th.blue }}>{label}</span>
+  const [tab, setTab] = useState("Info");
+  const CircleBtn = ({ icon, label }) => (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+      <div style={{ width: 54, height: 54, borderRadius: 27, background: th.cardSolid, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Icon d={icon} size={21} color={th.blue} sw={1.8} />
+      </div>
+      <span style={{ fontFamily: IOS_FONT, fontSize: 11, color: th.text2 }}>{label}</span>
+    </div>
+  );
+  const ToggleRow = ({ label, on, last }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 14px", borderBottom: last ? "none" : `0.5px solid ${th.sep}` }}>
+      <span style={{ fontFamily: IOS_FONT, fontSize: 14.5, color: th.text }}>{label}</span>
+      <ISwitch on={on} th={th} />
     </div>
   );
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 40, background: th.grouped, animation: "nbSheetUp 0.4s " + SPRING, display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "58px 16px 8px", display: "flex", justifyContent: "flex-end" }}>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: th.blue, fontFamily: IOS_FONT, fontSize: 16, fontWeight: 600, padding: 0 }}>Done</button>
+      {/* header: back / avatar / Edit */}
+      <div style={{ padding: "54px 16px 0", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: th.blue, display: "flex", padding: "6px 0" }}>
+          <Icon d={P.back} size={24} color={th.blue} sw={2.4} />
+        </button>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: -4 }}>
+          <Avatar name={c.name} hue={c.hue} size={76} />
+          <div style={{ fontFamily: IOS_FONT, fontSize: 20, fontWeight: 700, color: th.text, marginTop: 8 }}>{c.name}</div>
+        </div>
+        <button style={{ background: "none", border: "none", cursor: "pointer", color: th.blue, fontFamily: IOS_FONT, fontSize: 16, padding: "6px 0" }}>Edit</button>
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: "4px 16px 50px" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16 }}>
-          <Avatar name={c.name} hue={c.hue} size={84} />
-          <div style={{ fontFamily: IOS_FONT, fontSize: 22, fontWeight: 700, color: th.text, marginTop: 10 }}>{c.name}</div>
-          {c.kind === "relay" && (
-            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
-              <Icon d={P.shield} size={11} color={th.text2} sw={2.2} />
-              <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text2 }}>Nullberry verified contact</span>
+
+      {/* call / facetime / mail */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 26, margin: "14px 0 12px" }}>
+        <CircleBtn icon={P.phone} label="call" />
+        <CircleBtn icon={P.video} label="FaceTime" />
+        <CircleBtn icon={["M2 7l10 6 10-6", "M2 5h20v14H2z"]} label="mail" />
+      </div>
+
+      {/* category tabs */}
+      <div style={{ display: "flex", gap: 6, overflowX: "auto", padding: "0 14px 12px", flexShrink: 0 }} className="nb-screen">
+        {CARD_TABS.map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{ border: "none", cursor: "pointer", borderRadius: 999, padding: "6px 13px", whiteSpace: "nowrap", fontFamily: IOS_FONT, fontSize: 12.5, fontWeight: 600, color: tab === t ? (th.name === "dark" ? "#000" : "#fff") : th.text2, background: tab === t ? th.text : th.cardSolid, transition: "all 0.25s" }}>{t}</button>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "0 14px 50px" }}>
+        {tab === "Info" ? (
+          <React.Fragment>
+            <div style={{ background: th.cardSolid, borderRadius: 12, padding: "9px 14px", marginBottom: 10 }}>
+              <div style={{ fontFamily: IOS_FONT, fontSize: 12.5, color: th.text, marginBottom: 2, display: "flex", alignItems: "center", gap: 4 }}>
+                {c.kind === "relay" ? "email" : "mobile"}
+                <svg width="10" height="10" viewBox="0 0 24 24" fill={th.text2}><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 16.9 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z" /></svg>
+              </div>
+              <div style={{ fontFamily: IOS_FONT, fontSize: c.kind === "relay" ? 13 : 15, color: th.blue, wordBreak: "break-all" }}>{c.addr}</div>
             </div>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          <ActionBtn icon={P.msg} label="message" />
-          <ActionBtn icon={P.phone} label="call" />
-          <ActionBtn icon={P.video} label="video" />
-          <ActionBtn icon={["M2 7l10 6 10-6", "M2 5h20v14H2z"]} label="mail" />
-        </div>
-        <div style={{ background: th.cardSolid, borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
-          <div style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.blue, marginBottom: 3 }}>{c.kind === "relay" ? "Nullberry Relay" : "mobile"}</div>
-          <div style={{ fontFamily: c.kind === "relay" ? MONO : IOS_FONT, fontSize: c.kind === "relay" ? 11.5 : 15, color: c.kind === "relay" ? th.text : th.blue, wordBreak: "break-all" }}>{c.addr}</div>
-        </div>
-        {c.kind === "relay" && (
-          <div style={{ background: th.cardSolid, borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
-            <div style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.blue, marginBottom: 3 }}>routing</div>
-            <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: th.text, lineHeight: 1.5 }}>Messages to this contact leave through your paired MARK-1 as anonymous relay mail. Their real identity never touches Apple or carrier servers.</div>
+            <div style={{ background: th.cardSolid, borderRadius: 12, padding: "9px 14px", marginBottom: 10 }}>
+              <div style={{ fontFamily: IOS_FONT, fontSize: 12.5, color: th.text, marginBottom: 2 }}>birthday</div>
+              <div style={{ fontFamily: IOS_FONT, fontSize: 15, color: th.blue }}>{c.bday}</div>
+            </div>
+            <div style={{ background: th.cardSolid, borderRadius: 12, overflow: "hidden", marginBottom: 10 }}>
+              <ToggleRow label="Hide Alerts" on={false} />
+              <ToggleRow label="Send Read Receipts" on={true} />
+              <ToggleRow label="Show in Shared with You" on={true} />
+              <ToggleRow label="Share Focus Status" on={false} last />
+            </div>
+            <div style={{ background: th.cardSolid, borderRadius: 12, overflow: "hidden", marginBottom: 10 }}>
+              <ToggleRow label="Automatically Translate" on={false} last />
+            </div>
+            <div style={{ background: th.cardSolid, borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ fontFamily: IOS_FONT, fontSize: 14.5, color: th.blue, padding: "11px 14px" }}>Show in Contacts</div>
+            </div>
+          </React.Fragment>
+        ) : (
+          <div style={{ textAlign: "center", paddingTop: 60, fontFamily: IOS_FONT, fontSize: 13.5, color: th.text3 }}>
+            No {tab}
           </div>
         )}
-        <div style={{ background: th.cardSolid, borderRadius: 12, overflow: "hidden" }}>
-          {["Send My Current Location", "Share Contact", c.kind === "relay" ? "Rotate Relay Address" : "Block this Caller"].map((r, i, arr) => (
-            <div key={r} style={{ fontFamily: IOS_FONT, fontSize: 14.5, color: r.startsWith("Block") ? th.red : th.blue, padding: "11px 14px", borderBottom: i < arr.length - 1 ? `0.5px solid ${th.sep}` : "none" }}>{r}</div>
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -1190,10 +1237,7 @@ function IMessages({ th, contacts, openConvo, send }) {
               <Avatar name={c.name} hue={c.hue} size={44} />
               <div style={{ flex: 1, minWidth: 0, borderBottom: `0.5px solid ${th.sep}`, paddingBottom: 9 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <span style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 15.5, color: th.text, display: "flex", alignItems: "center", gap: 5 }}>
-                    {c.name}
-                    {c.kind === "relay" && <Icon d={P.shield} size={11} color={th.text3} sw={2.2} />}
-                  </span>
+                  <span style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 15.5, color: th.text }}>{c.name}</span>
                   <span style={{ fontFamily: IOS_FONT, fontSize: 12.5, color: th.text3, display: "flex", alignItems: "center", gap: 2 }}>
                     {c.time}
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={th.text3} strokeWidth="2.6" strokeLinecap="round"><path d="M9 6l6 6-6 6" /></svg>
@@ -1228,7 +1272,7 @@ function IMessages({ th, contacts, openConvo, send }) {
             </div>
             <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "12px 13px 6px", display: "flex", flexDirection: "column", gap: 4 }}>
               <div style={{ textAlign: "center", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, margin: "3px 0 9px" }}>
-                {active.kind === "relay" ? "Nullberry Relay" : "iMessage"}
+                iMessage
               </div>
               {active.msgs.map((m, i) => {
                 const out = m.d === "out";
@@ -1238,7 +1282,7 @@ function IMessages({ th, contacts, openConvo, send }) {
                     <div style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start", animation: i === active.msgs.length - 1 ? "nbBubbleIn 0.35s " + SPRING : "none" }}>
                       <div style={{ maxWidth: "74%", padding: "7px 12px", borderRadius: 18, borderBottomRightRadius: out ? 5 : 18, borderBottomLeftRadius: out ? 18 : 5, background: out ? th.blue : (th.name === "dark" ? "#26262a" : "#e9e9eb"), color: out ? "#fff" : th.text, fontFamily: IOS_FONT, fontSize: 14.5, lineHeight: 1.35 }}>{m.t}</div>
                     </div>
-                    {isLastOut && <div style={{ textAlign: "right", fontFamily: IOS_FONT, fontSize: 9.5, color: th.text3, padding: "1px 6px 0" }}>{active.kind === "relay" ? "Delivered · Nullberry Relay" : "Delivered"}</div>}
+                    {isLastOut && <div style={{ textAlign: "right", fontFamily: IOS_FONT, fontSize: 9.5, color: th.text3, padding: "1px 6px 0" }}>Delivered</div>}
                   </React.Fragment>
                 );
               })}
@@ -1252,7 +1296,7 @@ function IMessages({ th, contacts, openConvo, send }) {
             </div>
             <div style={{ padding: "8px 11px 42px", display: "flex", gap: 8, alignItems: "center", background: th.blur, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
               <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }}
-                placeholder={active.kind === "relay" ? "Nullberry Relay" : "iMessage"}
+                placeholder="iMessage"
                 style={{ flex: 1, borderRadius: 18, border: `1px solid ${th.sep}`, background: th.name === "dark" ? "rgba(255,255,255,0.06)" : "#fff", color: th.text, fontFamily: IOS_FONT, fontSize: 14.5, padding: "8px 14px", outline: "none" }} />
               <button onClick={() => { if (draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }} style={{ width: 32, height: 32, borderRadius: 16, border: "none", cursor: draft.trim() ? "pointer" : "default", background: draft.trim() ? th.blue : (th.name === "dark" ? "#26262a" : "#e9e9eb"), display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon d={P.send} size={16} color={draft.trim() ? "#fff" : th.text3} sw={2.4} />
@@ -1296,7 +1340,7 @@ function IFaceTime({ th, contacts }) {
               <div style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 14.5, color: th.text }}>{c.name}</div>
               <div style={{ fontFamily: IOS_FONT, fontSize: 11.5, color: th.text3, display: "flex", alignItems: "center", gap: 4 }}>
                 <Icon d={c.dir === "Outgoing" ? P.send : P.phone} size={10} color={th.text3} sw={2} style={{ transform: c.dir === "Outgoing" ? "rotate(45deg)" : "none" }} />
-                {c.dir} · {c.kind === "relay" ? "Nullberry Relay Audio" : "FaceTime Video"}
+                {c.dir} · {c.kind === "relay" ? "FaceTime Audio" : "FaceTime Video"}
               </div>
             </div>
             <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text3 }}>{c.when}</span>
@@ -1314,7 +1358,7 @@ function IFaceTime({ th, contacts }) {
           <div style={{ fontFamily: MONO, fontSize: 9.5, color: "rgba(255,255,255,0.5)", marginTop: 5 }}>{call.addr}</div>
           <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: "rgba(255,255,255,0.75)", marginTop: 14, display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 7, height: 7, borderRadius: 4, background: BRAND, animation: "nbPulse 1.2s infinite" }} />
-            {sec < 3 ? (call.kind === "relay" ? "Connecting via mesh relay…" : "FaceTime connecting…") : `${call.kind === "relay" ? "Mesh audio" : "FaceTime"} · ${String(Math.floor(sec / 60)).padStart(1, "0")}:${String(sec % 60).padStart(2, "0")}`}
+            {sec < 3 ? "FaceTime connecting…" : `FaceTime · ${String(Math.floor(sec / 60)).padStart(1, "0")}:${String(sec % 60).padStart(2, "0")}`}
           </div>
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", gap: 22, marginBottom: 64 }}>
@@ -1442,7 +1486,7 @@ function IPhoneDemo() {
     islandTimer.current = setTimeout(() => setActivity(null), 3400);
   }, []);
   const [contacts, setContacts, openConvo, send] = useConvos((c, reply) => {
-    notifyIsland({ kind: c.kind === "sms" ? "Messages" : "Nullberry Relay", text: reply, initial: c.name[0], hue: c.hue });
+    notifyIsland({ kind: "Messages", text: `${c.name} · ${reply}`, initial: c.name[0], hue: c.hue });
   }, genIosContacts);
   const [batt, setBatt] = useState(irnd(55, 92));
   const unread = contacts.reduce((s, c) => s + c.unread, 0);
