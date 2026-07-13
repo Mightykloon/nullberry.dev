@@ -822,9 +822,10 @@ const IosBattery = ({ pct, color }) => (
   </svg>
 );
 
-/* location-services arrow (appears beside the time when location is active) */
-const LocArrow = ({ color }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" style={{ marginTop: 1 }}>
+/* location-services arrow: sized to the exact cap height of the
+   status-bar time digits so it reads as one unit, like iOS */
+const LocArrow = ({ color, size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "block" }}>
     <path d="M2 10.8L22 2 13.2 22l-2.6-8.6z" fill={color} stroke={color} strokeWidth="1.6" strokeLinejoin="round" />
   </svg>
 );
@@ -834,8 +835,8 @@ function IStatusBar({ th, batt }) {
   return (
     <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 50, display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 22px 5px", zIndex: 40, pointerEvents: "none", fontFamily: IOS_FONT }}>
       <div style={{ width: 98, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-        <span style={{ fontSize: 14.5, fontWeight: 500, letterSpacing: -0.1, color: th.statusText, fontVariantNumeric: "tabular-nums" }}>{fmtTime(now)}</span>
-        <LocArrow color={th.statusText} />
+        <span style={{ fontSize: 14.5, lineHeight: "14.5px", fontWeight: 500, letterSpacing: -0.1, color: th.statusText, fontVariantNumeric: "tabular-nums" }}>{fmtTime(now)}</span>
+        <LocArrow color={th.statusText} size={12} />
       </div>
       <div style={{ width: 104, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
         <SignalBars color={th.statusText} />
