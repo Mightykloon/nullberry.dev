@@ -84,13 +84,54 @@ const SCRIPTS = [
 ];
 
 const REPLIES = ["copy that", "on it", "got it, relaying now", "👍", "roger", "signal's clean on L1", "will do", "ack. mesh looks healthy", "received, 2 hops", "sounds good"];
+const SMS_REPLIES = ["lol ok", "sounds good!", "omw", "yesss", "hahaha", "ok love you", "see you then!", "k", "😂😂"];
 const TIMES = ["2m", "11m", "26m", "1h", "3h", "Yesterday", "Yesterday"];
+
+/* everyday iMessage threads, for contrast with the relay contacts */
+const SMS_SCRIPTS = [
+  {
+    name: "Mom", msgs: [
+      { d: "in", t: "Are you coming to dinner Sunday? I'm making pozole 🍲" },
+      { d: "out", t: "wouldn't miss it. want me to bring anything?" },
+      { d: "in", t: "just your laundry I assume 😂" },
+      { d: "out", t: "...maybe" },
+      { d: "in", t: "ok love you, drive safe" },
+    ],
+  },
+  {
+    name: null, msgs: [
+      { d: "in", t: "bro did you see the game last night" },
+      { d: "out", t: "the ending was absurd. refs stole it" },
+      { d: "in", t: "we're watching the next one at Jake's, you in?" },
+      { d: "out", t: "obviously. i'll bring wings" },
+      { d: "in", t: "say less 🐔" },
+    ],
+  },
+  {
+    name: null, msgs: [
+      { d: "out", t: "we're out of dish soap again" },
+      { d: "in", t: "I got it. also rent is due friday" },
+      { d: "out", t: "already sent my half" },
+      { d: "in", t: "you're the best 🙏" },
+    ],
+  },
+  {
+    name: "Smile Dental", msgs: [
+      { d: "in", t: "Reminder: your cleaning appt is Tue 7/14 at 2:30 PM. Reply C to confirm." },
+      { d: "out", t: "C" },
+      { d: "in", t: "Thank you! Your appointment is confirmed. See you soon." },
+    ],
+  },
+];
+
+const phoneNum = () => `+1 (805) 555-0${irnd(100, 199)}`;
 
 function genContacts() {
   const names = shuffle(NAME_POOL).slice(0, SCRIPTS.length);
   const scripts = shuffle(SCRIPTS);
   return names.map((name, i) => ({
     id: "c" + i,
+    kind: "relay",
     name,
     addr: relayAddr(),
     hue: AVATAR_HUES[i % AVATAR_HUES.length],
@@ -100,6 +141,32 @@ function genContacts() {
     hops: irnd(1, 4),
     msgs: scripts[i].map((m, j) => ({ id: "m" + i + "_" + j, d: m.d, t: m.t })),
   }));
+}
+
+/* iPhone gets relay contacts AND regular phone-number contacts, interleaved */
+function genIosContacts() {
+  const relay = genContacts().slice(0, 4);
+  const usedNames = relay.map(c => c.name);
+  const spareNames = shuffle(NAME_POOL.filter(n => !usedNames.includes(n)));
+  let spareIdx = 0;
+  const sms = SMS_SCRIPTS.map((s, i) => ({
+    id: "s" + i,
+    kind: "sms",
+    name: s.name || spareNames[spareIdx++],
+    addr: phoneNum(),
+    hue: AVATAR_HUES[(i + 4) % AVATAR_HUES.length],
+    time: pick(["5m", "19m", "44m", "2h", "Yesterday"]),
+    unread: i === 0 ? 1 : 0,
+    msgs: s.msgs.map((m, j) => ({ id: "sm" + i + "_" + j, d: m.d, t: m.t })),
+  }));
+  /* interleave so the list alternates and the contrast is obvious */
+  const merged = [];
+  const a = [...relay], b = [...sms];
+  while (a.length || b.length) {
+    if (a.length) merged.push(a.shift());
+    if (b.length) merged.push(b.shift());
+  }
+  return merged;
 }
 
 const NODE_TYPES = { seed: { c: "#e8e8e8", label: "Seed" }, stem: { c: "#b5b5b5", label: "Stem" }, trunk: { c: "#8a8a8a", label: "Trunk" }, root: { c: BRAND, label: "Root" } };
@@ -165,16 +232,19 @@ function useMesh() {
 }
 
 /* messaging behavior shared by both demos */
-function useConvos(notify) {
-  const [contacts, setContacts] = useState(genContacts);
+function useConvos(notify, gen) {
+  const [contacts, setContacts] = useState(gen || genContacts);
   const openConvo = (id) => setContacts(cs => cs.map(c => c.id === id ? { ...c, unread: 0 } : c));
   const send = (cid, text) => {
     setContacts(cs => cs.map(c => c.id === cid ? { ...c, time: "now", msgs: [...c.msgs, { id: "u" + Date.now(), d: "out", t: text }] } : c));
     setTimeout(() => setContacts(cs => cs.map(c => c.id === cid ? { ...c, typing: true } : c)), 900);
     setTimeout(() => {
-      const reply = pick(REPLIES);
-      setContacts(cs => cs.map(c => c.id === cid ? { ...c, typing: false, time: "now", msgs: [...c.msgs, { id: "r" + Date.now(), d: "in", t: reply }] } : c));
-      if (notify) notify(cid, reply);
+      setContacts(cs => cs.map(c => {
+        if (c.id !== cid) return c;
+        const reply = pick(c.kind === "sms" ? SMS_REPLIES : REPLIES);
+        if (notify) notify(c, reply);
+        return { ...c, typing: false, time: "now", msgs: [...c.msgs, { id: "r" + Date.now(), d: "in", t: reply }] };
+      }));
     }, 2600);
   };
   return [contacts, setContacts, openConvo, send];
@@ -996,18 +1066,26 @@ function IMessages({ th, contacts, openConvo, send }) {
               <Avatar name={c.name} hue={c.hue} size={42} />
               <div style={{ flex: 1, minWidth: 0, borderBottom: `0.5px solid ${th.sep}`, paddingBottom: 9 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <span style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 15, color: th.text }}>{c.name}</span>
+                  <span style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 15, color: th.text, display: "flex", alignItems: "center", gap: 5 }}>
+                    {c.name}
+                    {c.kind === "relay" && <Icon d={P.shield} size={11} color={th.text2} sw={2.2} />}
+                  </span>
                   <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text3 }}>{c.time}</span>
                 </div>
-                <div style={{ fontFamily: MONO, fontSize: 8.5, color: th.text3, margin: "1px 0 2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 200 }}>{c.addr}</div>
+                {c.kind === "relay" ? (
+                  <div style={{ fontFamily: MONO, fontSize: 8.5, color: th.text3, margin: "1px 0 2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 200 }}>{c.addr}</div>
+                ) : (
+                  <div style={{ fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, margin: "1px 0 2px" }}>{c.addr}</div>
+                )}
                 <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: th.text2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 205 }}>
                   {c.typing ? "typing…" : c.msgs[c.msgs.length - 1].t}
                 </div>
               </div>
             </button>
           ))}
-          <div style={{ textAlign: "center", padding: "12px 0", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3 }}>
-            Relayed through nullberrysecure.net · end-to-end encrypted
+          <div style={{ textAlign: "center", padding: "12px 16px", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, lineHeight: 1.6 }}>
+            <Icon d={P.shield} size={10} color={th.text3} sw={2.2} style={{ display: "inline-block", verticalAlign: "-1px", marginRight: 3 }} />
+            contacts relay anonymously through nullberrysecure.net · others are regular iMessage
           </div>
         </div>
       </div>
@@ -1015,10 +1093,10 @@ function IMessages({ th, contacts, openConvo, send }) {
         {active && (
           <React.Fragment>
             <INavHeader th={th} onBack={() => setActiveId(null)} title={active.name} sub={active.addr}
-              right={<Icon d={P.video} size={19} color={th.blue} sw={1.9} />} />
+              right={active.kind === "relay" ? <Icon d={P.shield} size={18} color={th.blue} sw={1.9} /> : <Icon d={P.video} size={19} color={th.blue} sw={1.9} />} />
             <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "12px 13px 6px", display: "flex", flexDirection: "column", gap: 4 }}>
               <div style={{ textAlign: "center", fontFamily: IOS_FONT, fontSize: 10.5, color: th.text3, margin: "3px 0 9px" }}>
-                Contact verified · relay identity pinned
+                {active.kind === "relay" ? "Contact verified · relay identity pinned" : "iMessage"}
               </div>
               {active.msgs.map((m, i) => {
                 const out = m.d === "out";
@@ -1028,7 +1106,7 @@ function IMessages({ th, contacts, openConvo, send }) {
                     <div style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start", animation: i === active.msgs.length - 1 ? "nbBubbleIn 0.35s " + SPRING : "none" }}>
                       <div style={{ maxWidth: "74%", padding: "7px 12px", borderRadius: 18, borderBottomRightRadius: out ? 5 : 18, borderBottomLeftRadius: out ? 18 : 5, background: out ? th.blue : (th.name === "dark" ? "#26262a" : "#e9e9eb"), color: out ? "#fff" : th.text, fontFamily: IOS_FONT, fontSize: 14.5, lineHeight: 1.35 }}>{m.t}</div>
                     </div>
-                    {isLastOut && <div style={{ textAlign: "right", fontFamily: IOS_FONT, fontSize: 9.5, color: th.text3, padding: "1px 6px 0" }}>Delivered · Nullberry Relay</div>}
+                    {isLastOut && <div style={{ textAlign: "right", fontFamily: IOS_FONT, fontSize: 9.5, color: th.text3, padding: "1px 6px 0" }}>{active.kind === "relay" ? "Delivered · Nullberry Relay" : "Delivered"}</div>}
                   </React.Fragment>
                 );
               })}
@@ -1042,7 +1120,7 @@ function IMessages({ th, contacts, openConvo, send }) {
             </div>
             <div style={{ padding: "8px 11px 42px", display: "flex", gap: 8, alignItems: "center", background: th.blur, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
               <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }}
-                placeholder="Nullberry Relay"
+                placeholder={active.kind === "relay" ? "Nullberry Relay" : "iMessage"}
                 style={{ flex: 1, borderRadius: 18, border: `1px solid ${th.sep}`, background: th.name === "dark" ? "rgba(255,255,255,0.06)" : "#fff", color: th.text, fontFamily: IOS_FONT, fontSize: 14.5, padding: "8px 14px", outline: "none" }} />
               <button onClick={() => { if (draft.trim()) { send(active.id, draft.trim()); setDraft(""); } }} style={{ width: 32, height: 32, borderRadius: 16, border: "none", cursor: draft.trim() ? "pointer" : "default", background: draft.trim() ? th.blue : (th.name === "dark" ? "#26262a" : "#e9e9eb"), display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon d={P.send} size={16} color={draft.trim() ? "#fff" : th.text3} sw={2.4} />
@@ -1064,7 +1142,7 @@ function IFaceTime({ th, contacts }) {
     const t = setInterval(() => setSec(s => s + 1), 1000);
     return () => clearInterval(t);
   }, [call]);
-  const recents = useMemo(() => contacts.slice(0, 6).map((c, i) => ({ ...c, kind: i % 3 === 0 ? "Outgoing" : "Incoming", when: pick(["2:14 PM", "11:02 AM", "Yesterday", "Yesterday", "Sunday"]) })), [contacts]);
+  const recents = useMemo(() => contacts.slice(0, 6).map((c, i) => ({ ...c, dir: i % 3 === 0 ? "Outgoing" : "Incoming", when: pick(["2:14 PM", "11:02 AM", "Yesterday", "Yesterday", "Sunday"]) })), [contacts]);
   return (
     <div style={{ position: "absolute", inset: 0, background: th.bg, display: "flex", flexDirection: "column" }}>
       <INavHeader th={th} title="FaceTime" />
@@ -1082,10 +1160,10 @@ function IFaceTime({ th, contacts }) {
           <button key={c.id} onClick={() => setCall(c)} style={{ display: "flex", gap: 11, alignItems: "center", width: "100%", padding: "8px 2px", background: "none", border: "none", cursor: "pointer", textAlign: "left", borderBottom: `0.5px solid ${th.sep}` }}>
             <Avatar name={c.name} hue={c.hue} size={40} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 14.5, color: c.kind === "Outgoing" ? th.text : th.text }}>{c.name}</div>
+              <div style={{ fontFamily: IOS_FONT, fontWeight: 600, fontSize: 14.5, color: th.text }}>{c.name}</div>
               <div style={{ fontFamily: IOS_FONT, fontSize: 11.5, color: th.text3, display: "flex", alignItems: "center", gap: 4 }}>
-                <Icon d={c.kind === "Outgoing" ? P.send : P.phone} size={10} color={th.text3} sw={2} style={{ transform: c.kind === "Outgoing" ? "rotate(45deg)" : "none" }} />
-                {c.kind} · Nullberry Relay Audio
+                <Icon d={c.dir === "Outgoing" ? P.send : P.phone} size={10} color={th.text3} sw={2} style={{ transform: c.dir === "Outgoing" ? "rotate(45deg)" : "none" }} />
+                {c.dir} · {c.kind === "relay" ? "Nullberry Relay Audio" : "FaceTime Video"}
               </div>
             </div>
             <span style={{ fontFamily: IOS_FONT, fontSize: 12, color: th.text3 }}>{c.when}</span>
@@ -1103,7 +1181,7 @@ function IFaceTime({ th, contacts }) {
           <div style={{ fontFamily: MONO, fontSize: 9.5, color: "rgba(255,255,255,0.5)", marginTop: 5 }}>{call.addr}</div>
           <div style={{ fontFamily: IOS_FONT, fontSize: 13, color: "rgba(255,255,255,0.75)", marginTop: 14, display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 7, height: 7, borderRadius: 4, background: BRAND, animation: "nbPulse 1.2s infinite" }} />
-            {sec < 3 ? "Connecting via mesh relay…" : `Mesh audio · ${String(Math.floor(sec / 60)).padStart(1, "0")}:${String(sec % 60).padStart(2, "0")}`}
+            {sec < 3 ? (call.kind === "relay" ? "Connecting via mesh relay…" : "FaceTime connecting…") : `${call.kind === "relay" ? "Mesh audio" : "FaceTime"} · ${String(Math.floor(sec / 60)).padStart(1, "0")}:${String(sec % 60).padStart(2, "0")}`}
           </div>
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", gap: 22, marginBottom: 64 }}>
@@ -1230,10 +1308,9 @@ function IPhoneDemo() {
     clearTimeout(islandTimer.current);
     islandTimer.current = setTimeout(() => setActivity(null), 3400);
   }, []);
-  const [contacts, setContacts, openConvo, send] = useConvos((cid, reply) => {
-    const c = contacts.find(x => x.id === cid);
-    notifyIsland({ kind: "Nullberry Relay", text: reply, initial: c ? c.name[0] : "N", hue: c ? c.hue : 198 });
-  });
+  const [contacts, setContacts, openConvo, send] = useConvos((c, reply) => {
+    notifyIsland({ kind: c.kind === "sms" ? "Messages" : "Nullberry Relay", text: reply, initial: c.name[0], hue: c.hue });
+  }, genIosContacts);
   const [batt, setBatt] = useState(irnd(55, 92));
   const unread = contacts.reduce((s, c) => s + c.unread, 0);
 
