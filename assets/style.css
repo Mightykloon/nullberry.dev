@@ -1369,3 +1369,20 @@ footer {
   }
   html { scroll-behavior: auto; }
 }
+
+/* ═══════════════════════════════════════
+   HERO WORDMARK DOCKING
+   The splash shrinks into the nav logo slot on scroll;
+   the in-nav image is a sizing placeholder while JS drives it.
+   ═══════════════════════════════════════ */
+.logo-dock .nav-logo-img { visibility: hidden; }
+
+.splash-img.docking {
+  position: fixed;
+  z-index: 101;
+  animation: none;
+  pointer-events: none;
+  margin: 0;
+  height: auto;
+  will-change: left, top, width;
+}
