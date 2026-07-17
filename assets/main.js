@@ -94,6 +94,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
   function measure() {
     // natural in-flow rect of the splash (page coordinates)
+    if (img.parentElement !== wrap) wrap.appendChild(img);
     img.classList.remove('docking');
     img.style.cssText = '';
     wrap.style.height = '';
@@ -121,7 +122,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const p = Math.min(1, Math.max(0, window.scrollY / dockDist));
 
     if (p === 0) {
-      // fully home: restore in-flow layout and the breathing glow
+      // fully home: back into the hero, in-flow, breathing glow restored
+      if (img.parentElement !== wrap) wrap.appendChild(img);
       img.classList.remove('docking');
       img.style.cssText = '';
       return;
@@ -133,6 +135,9 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const top = curTop + (end.top - curTop) * e;
     const width = start.width + (end.width - start.width) * e;
 
+    // portal to <body>: the hero section is its own stacking context
+    // (z-index 1), so the image must leave it to render above the nav
+    if (img.parentElement !== document.body) document.body.appendChild(img);
     img.classList.add('docking');
     img.style.left = left + 'px';
     img.style.top = top + 'px';
