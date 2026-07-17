@@ -91,6 +91,14 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   document.documentElement.classList.add('logo-dock');
 
   let start = null, end = null, ticking = false;
+  const mobileMq = window.matchMedia('(max-width: 768px)');
+
+  // steady-state: transforms are scroll-scrubbed by JS, so only let CSS
+  // transition the backdrop styles (mobile keeps its own CSS behavior)
+  function navTransitionBase() {
+    nav.style.transition = mobileMq.matches ? '' : 'background 0.4s ease, border-color 0.4s ease';
+  }
+  navTransitionBase();
 
   function measure() {
     // natural in-flow rect of the splash (page coordinates)
@@ -112,7 +120,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     end = { left: nr.left, top: nr.top, width: nr.width };
     nav.style.transform = prev.t; nav.style.visibility = prev.v; nav.style.opacity = prev.o;
     void nav.offsetHeight;
-    nav.style.transition = prev.tr;
+    navTransitionBase();
     apply();
   }
 
@@ -120,6 +128,18 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (!start || !end) return;
     const dockDist = Math.max(1, hero.offsetHeight * 0.6);
     const p = Math.min(1, Math.max(0, window.scrollY / dockDist));
+
+    // nav descent is scrubbed by the same scroll progress: it starts
+    // sliding down mid-flight and locks in exactly as the wordmark lands
+    if (!mobileMq.matches) {
+      const q = Math.min(1, Math.max(0, (p - 0.45) / 0.55));
+      const qe = 1 - Math.pow(1 - q, 3);
+      nav.style.transform = 'translateY(' + (qe * 100 - 100).toFixed(2) + '%)';
+      nav.style.opacity = qe.toFixed(3);
+    } else {
+      nav.style.transform = '';
+      nav.style.opacity = '';
+    }
 
     if (p === 0) {
       // fully home: back into the hero, in-flow, breathing glow restored
@@ -142,7 +162,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     img.style.left = left + 'px';
     img.style.top = top + 'px';
     img.style.width = width + 'px';
-    img.style.filter = 'drop-shadow(0 0 ' + (30 * (1 - e)) + 'px rgba(255,255,255,' + (0.3 * (1 - e)).toFixed(3) + '))';
+    // the glow rides along, tightening into a soft halo at the nav
+    img.style.filter = 'drop-shadow(0 0 ' + (30 - 21 * e).toFixed(1) + 'px rgba(255,255,255,' + (0.3 - 0.1 * e).toFixed(3) + '))';
   }
 
   function onScroll() {
@@ -153,6 +174,11 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', function() { requestAnimationFrame(measure); });
+  mobileMq.addEventListener('change', function() {
+    nav.style.transform = ''; nav.style.opacity = '';
+    navTransitionBase();
+    requestAnimationFrame(measure);
+  });
   if (img.complete) measure(); else img.addEventListener('load', measure);
   window.addEventListener('load', function() { requestAnimationFrame(measure); });
 })();
