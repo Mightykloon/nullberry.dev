@@ -1404,4 +1404,22 @@ footer {
   margin: 0;
   height: auto;
   will-change: left, top, width;
+  /* the traveling bloom below carries the glow, so drop the filter halo */
+  filter: none;
+}
+
+/* soft bloom that rides on the wordmark's center as it docks, so the
+   glow visibly travels into the nav rather than shrinking in place */
+.dock-glow {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.28) 32%,
+    transparent 68%);
+  filter: blur(14px);
+  will-change: left, top, width, height, opacity;
 }
