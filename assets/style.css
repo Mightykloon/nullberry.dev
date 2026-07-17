@@ -301,6 +301,9 @@ section + section::before {
     transparent 70%);
   filter: blur(60px);
   pointer-events: none;
+  /* driven by the dock scroll progress so the halo leaves with the
+     wordmark instead of lingering as an empty spotlight */
+  opacity: var(--hero-bloom, 1);
 }
 
 #hero::after {
@@ -355,6 +358,22 @@ section + section::before {
 }
 
 @keyframes cursorBlink { 50% { opacity: 0; } }
+
+/* scroll-driven Matrix scramble: characters jumble through ASCII then
+   dissolve in random order. Mono cells keep the width rock-steady. */
+.hero-tagline.encrypting { white-space: pre; }
+.hero-tagline.scrambling::after { opacity: 0; }
+
+.hero-tagline .enc-char {
+  display: inline-block;
+  will-change: opacity;
+  transition: color 0.18s linear;
+}
+
+.hero-tagline .enc-char.on {
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.55);
+}
 
 .hero-scroll-indicator {
   position: absolute;
