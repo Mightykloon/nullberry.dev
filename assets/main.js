@@ -90,7 +90,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
   document.documentElement.classList.add('logo-dock');
 
-  let start = null, end = null, ticking = false;
+  let start = null, end = null, ticking = false, flight = null;
   const mobileMq = window.matchMedia('(max-width: 768px)');
 
   // steady-state: transforms are scroll-scrubbed by JS, so only let CSS
@@ -143,10 +143,18 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 
     if (p === 0) {
       // fully home: back into the hero, in-flow, breathing glow restored
+      flight = null;
       if (img.parentElement !== wrap) wrap.appendChild(img);
       img.classList.remove('docking');
       img.style.cssText = '';
       return;
+    }
+
+    // seamless glow handoff: sample the breathing animation's live
+    // radius/alpha the instant the flight starts, so there is no pop
+    if (!flight) {
+      const m = getComputedStyle(img).filter.match(/rgba\(255,\s*255,\s*255,\s*([\d.]+)\)\s*0px\s*0px\s*([\d.]+)px/);
+      flight = { a0: m ? parseFloat(m[1]) : 0.3, r0: m ? parseFloat(m[2]) : 34 };
     }
 
     const e = 1 - Math.pow(1 - p, 3); // easeOutCubic
@@ -162,8 +170,12 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     img.style.left = left + 'px';
     img.style.top = top + 'px';
     img.style.width = width + 'px';
-    // the glow rides along, tightening into a soft halo at the nav
-    img.style.filter = 'drop-shadow(0 0 ' + (30 - 21 * e).toFixed(1) + 'px rgba(255,255,255,' + (0.3 - 0.1 * e).toFixed(3) + '))';
+    // the glow shrinks in proportion to the wordmark itself, easing from
+    // its captured live value to a size-matched halo at the nav
+    const rDock = Math.max(6, 34 * (end.width / start.width));
+    const rr = flight.r0 + (rDock - flight.r0) * e;
+    const aa = flight.a0 + (0.3 - flight.a0) * e;
+    img.style.filter = 'drop-shadow(0 0 ' + rr.toFixed(1) + 'px rgba(255,255,255,' + aa.toFixed(3) + '))';
   }
 
   function onScroll() {
