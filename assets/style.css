@@ -476,9 +476,6 @@ section + section::before {
   width: min(300px, 82vw);
   height: auto;
   display: block;
-  filter:
-    drop-shadow(0 24px 60px rgba(0, 0, 0, 0.6))
-    drop-shadow(0 0 46px rgba(255, 255, 255, 0.05));
 }
 
 .device-mockup {

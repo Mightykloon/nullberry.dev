@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/style.css?v=10">
+  <link rel="stylesheet" href="assets/style.css?v=11">
 </head>
 <body>
 
@@ -112,118 +112,33 @@
 
     <div class="product-grid reveal">
       <div class="device-visual">
-        <svg class="mark1-svg" viewBox="0 0 300 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nullberry MARK-1 handheld mesh communicator concept">
-          <defs>
-            <linearGradient id="m1-metal" x1="0" y1="0" x2="0.35" y2="1">
-              <stop offset="0" stop-color="#3d4147"/>
-              <stop offset="0.5" stop-color="#202327"/>
-              <stop offset="1" stop-color="#0c0e10"/>
-            </linearGradient>
-            <linearGradient id="m1-btn" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#51555b"/>
-              <stop offset="1" stop-color="#24272c"/>
-            </linearGradient>
-            <linearGradient id="m1-ant" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#52555b"/>
-              <stop offset="0.5" stop-color="#2a2d31"/>
-              <stop offset="1" stop-color="#16181b"/>
-            </linearGradient>
-            <radialGradient id="m1-screen" cx="0.5" cy="0.4" r="0.75">
-              <stop offset="0" stop-color="#15171b"/>
-              <stop offset="0.7" stop-color="#08090b"/>
-              <stop offset="1" stop-color="#050607"/>
-            </radialGradient>
-            <radialGradient id="m1-glow" cx="0.5" cy="0.42" r="0.6">
-              <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
-              <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
+        <svg class="mark1-svg" viewBox="0 0 300 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nullberry MARK-1 handheld mesh communicator outline">
+          <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+            <!-- antennas (occluded by the body below) -->
+            <rect x="180" y="32" width="6" height="72" rx="3" stroke-width="1.8"/>
+            <rect x="175.5" y="100" width="15" height="24" rx="3" stroke-width="1.8" fill="#050505"/>
+            <rect x="112" y="62" width="9" height="44" rx="4.5" stroke-width="1.8"/>
+            <rect x="109" y="102" width="15" height="22" rx="3" stroke-width="1.8" fill="#050505"/>
 
-          <!-- antennas -->
-          <g>
-            <!-- telescoping whip -->
-            <rect x="181.5" y="28" width="3" height="76" rx="1.5" fill="url(#m1-ant)"/>
-            <circle cx="183" cy="29" r="3.4" fill="url(#m1-ant)"/>
-            <rect x="175" y="100" width="16" height="25" rx="4" fill="url(#m1-ant)" stroke="#5c6066" stroke-width="0.8"/>
-            <path d="M176 106 H190 M176 111 H190 M176 116 H190" stroke="#0b0d0f" stroke-width="0.7"/>
-            <!-- stubby LoRa -->
-            <rect x="112" y="60" width="8" height="46" rx="4" fill="url(#m1-ant)"/>
-            <rect x="108" y="102" width="16" height="23" rx="4" fill="url(#m1-ant)" stroke="#5c6066" stroke-width="0.8"/>
-            <path d="M109 108 H123 M109 113 H123 M109 118 H123" stroke="#0b0d0f" stroke-width="0.7"/>
+            <!-- side buttons -->
+            <rect x="240" y="250" width="8" height="52" rx="4" stroke-width="1.8" fill="#050505"/>
+            <rect x="240" y="316" width="8" height="15" rx="4" stroke-width="1.8" fill="#050505"/>
+            <rect x="240" y="338" width="8" height="15" rx="4" stroke-width="1.8" fill="#050505"/>
+            <rect x="52" y="256" width="8" height="62" rx="4" stroke-width="1.8" fill="#050505"/>
+
+            <!-- lanyard loop -->
+            <rect x="80" y="556" width="26" height="32" rx="13" stroke-width="1.8" fill="#050505"/>
+            <circle cx="93" cy="577" r="4.5" stroke-width="1.6"/>
+
+            <!-- body -->
+            <rect x="60" y="120" width="180" height="450" rx="26" stroke-width="2.6" fill="#050505"/>
+
+            <!-- display -->
+            <rect x="76" y="150" width="148" height="390" rx="10" stroke-width="2"/>
+
+            <!-- usb-c port -->
+            <rect x="137" y="565" width="26" height="9" rx="4.5" stroke-width="1.8" fill="#050505"/>
           </g>
-
-          <!-- side buttons (drawn under the body edge) -->
-          <rect x="247" y="250" width="7" height="54" rx="3.2" fill="url(#m1-btn)" stroke="#5c6066" stroke-width="0.6"/>
-          <rect x="247" y="314" width="7" height="16" rx="3.2" fill="url(#m1-btn)" stroke="#5c6066" stroke-width="0.6"/>
-          <rect x="247" y="336" width="7" height="16" rx="3.2" fill="url(#m1-btn)" stroke="#5c6066" stroke-width="0.6"/>
-          <rect x="46" y="256" width="7" height="66" rx="3.2" fill="url(#m1-btn)" stroke="#5c6066" stroke-width="0.6"/>
-
-          <!-- lanyard loop tab -->
-          <rect x="72" y="570" width="30" height="18" rx="9" fill="url(#m1-metal)" stroke="#5c6066" stroke-width="1"/>
-          <circle cx="87" cy="580" r="4.6" fill="#050505"/>
-
-          <!-- body -->
-          <rect x="52" y="120" width="196" height="454" rx="26" fill="url(#m1-metal)" stroke="#666a70" stroke-width="1.6"/>
-          <rect x="59" y="127" width="182" height="440" rx="20" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-          <line x1="62.5" y1="156" x2="62.5" y2="540" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <rect x="66" y="134" width="168" height="426" rx="15" fill="#0a0b0d" stroke="rgba(0,0,0,0.55)" stroke-width="1"/>
-
-          <!-- corner screws -->
-          <g fill="#16181b" stroke="#4c4f55" stroke-width="0.7">
-            <polygon points="64,126.5 61,128.2 58,126.5 58,123 61,121.3 64,123"/>
-            <polygon points="242,126.5 239,128.2 236,126.5 236,123 239,121.3 242,123"/>
-            <polygon points="64,571 61,572.7 58,571 58,567.5 61,565.8 64,567.5"/>
-            <polygon points="242,571 239,572.7 236,571 236,567.5 239,565.8 242,567.5"/>
-          </g>
-
-          <!-- top bezel: IR window + sensor + speaker slit -->
-          <rect x="134" y="140" width="20" height="6" rx="3" fill="#050505" stroke="#333" stroke-width="0.6"/>
-          <circle cx="162" cy="143" r="1.6" fill="#26292d"/>
-
-          <!-- screen -->
-          <rect x="76" y="152" width="148" height="390" rx="9" fill="url(#m1-screen)" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
-          <rect x="76" y="152" width="148" height="390" rx="9" fill="url(#m1-glow)"/>
-
-          <!-- screen: status bar -->
-          <text x="86" y="169" font-family="'JetBrains Mono',monospace" font-size="7" fill="#c4c4c4">Nullberry OS</text>
-          <g fill="#c4c4c4">
-            <rect x="190" y="166" width="2" height="4"/>
-            <rect x="194" y="164" width="2" height="6"/>
-            <rect x="198" y="162" width="2" height="8"/>
-          </g>
-          <rect x="205" y="163" width="11" height="6" rx="1.6" fill="none" stroke="#c4c4c4" stroke-width="0.8"/>
-          <rect x="206.5" y="164.4" width="7.5" height="3.2" fill="#c4c4c4"/>
-          <rect x="216.4" y="164.6" width="1.4" height="2.8" rx="0.5" fill="#c4c4c4"/>
-
-          <!-- screen: center -->
-          <text x="150" y="316" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="14" fill="#ededed" letter-spacing="0.4">Nullberry OS</text>
-          <text x="150" y="333" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#7c7c7c">// MARK-1 prototype</text>
-          <rect x="127" y="343" width="46" height="15" rx="7.5" fill="none" stroke="#9a9a9a" stroke-width="0.9">
-            <animate attributeName="stroke-opacity" values="0.4;1;0.4" dur="2.6s" repeatCount="indefinite"/>
-          </rect>
-          <text x="150" y="353.6" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#d2d2d2">ready</text>
-
-          <!-- screen: node-map -->
-          <text x="88" y="464" font-family="'JetBrains Mono',monospace" font-size="6.5" fill="#7c7c7c">Node-map</text>
-          <path d="M100 490 L150 484 L200 492" fill="none" stroke="#484848" stroke-width="1"/>
-          <circle cx="100" cy="490" r="3" fill="#0a0b0d" stroke="#a6a6a6" stroke-width="1"/>
-          <circle cx="200" cy="492" r="3" fill="#0a0b0d" stroke="#a6a6a6" stroke-width="1"/>
-          <circle cx="150" cy="484" r="3" fill="#0a0b0d" stroke="#d8d8d8" stroke-width="1"/>
-          <circle cx="150" cy="484" r="3" fill="none" stroke="#d8d8d8" stroke-width="1">
-            <animate attributeName="r" values="3;7;3" dur="2.8s" repeatCount="indefinite"/>
-            <animate attributeName="stroke-opacity" values="0.8;0;0.8" dur="2.8s" repeatCount="indefinite"/>
-          </circle>
-          <text x="158" y="481" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="#7c7c7c">15 ft</text>
-
-          <!-- bottom bezel: ultrasonic speaker grille -->
-          <g fill="#303336">
-            <circle cx="120" cy="551" r="1.3"/><circle cx="128" cy="551" r="1.3"/><circle cx="136" cy="551" r="1.3"/>
-            <circle cx="144" cy="551" r="1.3"/><circle cx="152" cy="551" r="1.3"/><circle cx="160" cy="551" r="1.3"/>
-            <circle cx="168" cy="551" r="1.3"/><circle cx="176" cy="551" r="1.3"/><circle cx="184" cy="551" r="1.3"/>
-          </g>
-
-          <!-- USB-C port -->
-          <rect x="137" y="568" width="26" height="7" rx="3.5" fill="#050505" stroke="#4c4f55" stroke-width="0.8"/>
         </svg>
       </div>
 
