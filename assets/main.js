@@ -136,9 +136,10 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const dockDist = Math.max(1, hero.offsetHeight * 0.6);
     const p = Math.min(1, Math.max(0, window.scrollY / dockDist));
 
-    // fade the hero bloom in lockstep so the halo leaves WITH the
-    // wordmark rather than lingering as an empty spotlight
-    hero.style.setProperty('--hero-bloom', (1 - (1 - Math.pow(1 - p, 3))).toFixed(3));
+    // The ambient hero bloom hands off fast to the traveling .dock-glow:
+    // fully gone by 18% of the dock so no faint halo lingers in the
+    // center once the wordmark has moved off.
+    hero.style.setProperty('--hero-bloom', Math.max(0, 1 - p / 0.18).toFixed(3));
 
     // nav descent is scrubbed by the same scroll progress: it starts
     // sliding down mid-flight and locks in exactly as the wordmark lands
