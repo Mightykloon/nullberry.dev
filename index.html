@@ -112,52 +112,83 @@
 
     <div class="product-grid reveal">
       <div class="device-visual">
-        <svg class="mark1-svg" viewBox="0 0 300 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nullberry MARK-1 isometric wireframe, three-quarter view from below right">
+        <svg class="mark1-svg" viewBox="0 0 300 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nullberry MARK-1 isometric wireframe with four modular antenna bays">
           <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
 
-            <!-- HIDDEN EDGES (back-left corner, seen through the wireframe) -->
-            <g stroke-width="1" stroke-dasharray="6 5" opacity="0.4">
-              <path d="M57.4 172.3 L73.2 180.5"/>
-              <path d="M73.2 180.5 L242.6 161.4"/>
-              <path d="M73.2 180.5 L73.2 592.8"/>
+            <!-- ===== ANTENNA BAYS (4 total, 2 populated) ===== -->
+            <!-- bay 1: empty, threaded socket -->
+            <g stroke-width="1.3">
+              <ellipse cx="94.55" cy="168.2" rx="10.2" ry="2.5"/>
+              <ellipse cx="94.55" cy="168.2" rx="6.4" ry="1.6" opacity="0.7"/>
+              <path d="M84.35 168.2 L84.35 181.4 M104.75 168.2 L104.75 181.4 M84.35 181.4 L104.75 181.4"/>
+            </g>
+            <!-- bay 2: stubby LoRa duck, screwed in -->
+            <g stroke-width="1.5">
+              <rect x="125.0" y="78.3" width="13" height="86" rx="6.5"/>
+              <ellipse cx="131.52" cy="164.0" rx="10.2" ry="2.5"/>
+              <path d="M121.32 164.0 L121.32 177.2 M141.72 164.0 L141.72 177.2 M121.32 177.2 L141.72 177.2"/>
+              <path d="M122.5 167.5 H140.5 M122.5 171.5 H140.5" stroke-width="0.9"/>
+            </g>
+            <!-- bay 3: telescoping whip, screwed in -->
+            <g stroke-width="1.4">
+              <rect x="166.48" y="16.4" width="4" height="45" rx="2"/>
+              <rect x="165.48" y="60.9" width="6" height="50" rx="3"/>
+              <rect x="163.98" y="110.4" width="9" height="50" rx="4.5"/>
+              <ellipse cx="168.48" cy="159.8" rx="10.2" ry="2.5"/>
+              <path d="M158.28 159.8 L158.28 173.0 M178.68 159.8 L178.68 173.0 M158.28 173.0 L178.68 173.0"/>
+              <path d="M159.4 163.3 H177.6 M159.4 167.3 H177.6" stroke-width="0.9"/>
+            </g>
+            <!-- bay 4: empty, threaded socket -->
+            <g stroke-width="1.3">
+              <ellipse cx="205.45" cy="155.67" rx="10.2" ry="2.5"/>
+              <ellipse cx="205.45" cy="155.67" rx="6.4" ry="1.6" opacity="0.7"/>
+              <path d="M195.25 155.67 L195.25 168.86 M215.65 155.67 L215.65 168.86 M195.25 168.86 L215.65 168.86"/>
             </g>
 
-            <!-- ANTENNAS -->
-            <rect x="185.5" y="38.9" width="6" height="124" rx="3" stroke-width="1.5"/>
-            <path d="M184 150 H193 M184 155.5 H193 M184 161 H193" stroke-width="0.9"/>
-            <rect x="120.4" y="82.1" width="13" height="88" rx="6.5" stroke-width="1.6"/>
-            <path d="M119.5 152 H134.5 M119.5 158 H134.5 M119.5 164 H134.5" stroke-width="0.9"/>
+            <!-- ===== HIDDEN GEOMETRY ===== -->
+            <g stroke-width="1" stroke-dasharray="6 5" opacity="0.4">
+              <path d="M74.02 560.92 L74.02 211.34 C74.02 198.59 83.68 187.15 95.58 185.81 L218.80 171.89"/>
+              <!-- power button, left flank -->
+              <path d="M71.14 256.01 L62.51 251.54 L62.51 301.01 L71.14 305.48 Z"/>
+              <path d="M64.98 256.71 L56.35 252.24 L56.35 301.71 L64.98 306.18 Z"/>
+              <path d="M71.14 256.01 L64.98 256.71 M62.51 251.54 L56.35 252.24 M62.51 301.01 L56.35 301.71 M71.14 305.48 L64.98 306.18"/>
+            </g>
 
-            <!-- CHASSIS: front face -->
-            <path d="M57.4 172.3 L226.8 153.2 L226.8 565.5 L57.4 584.6 Z" stroke-width="2.4"/>
-            <!-- CHASSIS: right side profile -->
-            <path d="M226.8 153.2 L242.6 161.4 L242.6 573.7 L226.8 565.5" stroke-width="2.2"/>
-            <!-- CHASSIS: bottom face -->
-            <path d="M57.4 584.6 L73.2 592.8 L242.6 573.7" stroke-width="2.2"/>
+            <!-- ===== REAR SHELL (visible right + bottom) ===== -->
+            <path d="M218.80 171.89 C230.70 170.54 240.36 179.79 240.36 192.54 L240.36 542.12 C240.36 554.87 230.70 566.30 218.80 567.65 L95.58 581.57 C83.68 582.91 74.02 573.67 74.02 560.92" stroke-width="1.8"/>
 
-            <!-- DISPLAY -->
-            <path d="M74.3 211.6 L209.9 196.3 L209.9 468.4 L74.3 483.7 Z" stroke-width="1.8"/>
-            <path d="M79 218 L205 203.8" stroke-width="0.8" opacity="0.5"/>
+            <!-- shell thickness connectors -->
+            <g stroke-width="1.5">
+              <path d="M225.98 185.09 L240.36 192.54"/>
+              <path d="M225.98 534.67 L240.36 542.12"/>
+              <path d="M204.42 560.19 L218.80 567.65"/>
+              <path d="M81.20 574.11 L95.58 581.57"/>
+              <path d="M59.64 553.46 L74.02 560.92"/>
+              <path d="M204.42 164.43 L218.80 171.89"/>
+            </g>
 
-            <!-- CONTROL CLUSTER -->
-            <ellipse cx="142.1" cy="525.6" rx="27.9" ry="29.7" transform="rotate(-6.4 142.1 525.6)" stroke-width="1.6"/>
-            <ellipse cx="142.1" cy="525.6" rx="10" ry="10.7" transform="rotate(-6.4 142.1 525.6)" stroke-width="1.4"/>
-            <path d="M83.6 517.3 L111.3 514.2 L111.3 543.9 L83.6 547 Z" stroke-width="1.4"/>
-            <path d="M172.9 507.2 L200.6 504.1 L200.6 533.8 L172.9 536.9 Z" stroke-width="1.4"/>
+            <!-- ===== OUTER RUGGED SHELL (front) ===== -->
+            <path d="M81.20 178.35 L204.42 164.43 C216.32 163.09 225.98 172.34 225.98 185.09 L225.98 534.67 C225.98 547.42 216.32 558.85 204.42 560.19 L81.20 574.11 C69.30 575.46 59.64 566.21 59.64 553.46 L59.64 203.88 C59.64 191.13 69.30 179.70 81.20 178.35 Z" stroke-width="2.4"/>
 
-            <!-- RIGHT-FACE CONTROLS: PTT paddle, extruded -->
-            <path d="M237.6 315.5 L230.4 311.7 L230.4 402.4 L237.6 406.2 Z" stroke-width="1.5"/>
-            <path d="M242.2 314.9 L235 311.2 L235 401.9 L242.2 405.6 Z" stroke-width="1.3"/>
-            <path d="M237.6 315.5 L242.2 314.9 M230.4 311.7 L235 311.2 M230.4 402.4 L235 401.9 M237.6 406.2 L242.2 405.6" stroke-width="1"/>
-            <!-- aux keys -->
-            <path d="M236.9 438.8 L231.1 435.8 L231.1 463.8 L236.9 466.8 Z" stroke-width="1.4"/>
-            <path d="M236.9 483.3 L231.1 480.3 L231.1 508.3 L236.9 511.3 Z" stroke-width="1.4"/>
+            <!-- over-mold bezel line -->
+            <path d="M82.74 186.42 L202.88 172.85 C212.24 171.79 219.82 180.96 219.82 189.07 L219.82 532.07 C219.82 540.18 212.24 551.07 202.88 552.13 L82.74 565.70 C73.38 566.76 65.80 557.59 65.80 549.48 L65.80 206.48 C65.80 198.37 73.38 187.48 82.74 186.42 Z" stroke-width="1.1" opacity="0.75"/>
 
-            <!-- KNURLED GRIP on the side rail -->
-            <path d="M240.5 201.5 L229 195.6 M240.5 214.7 L229 208.7 M240.5 227.9 L229 221.9 M240.5 241.1 L229 235.1 M240.5 254.3 L229 248.3 M240.5 267.5 L229 261.5" stroke-width="1"/>
+            <!-- ===== FULL-SCREEN DISPLAY ===== -->
+            <path d="M85.82 194.32 L199.80 181.44 C207.46 180.58 213.66 188.07 213.66 194.71 L213.66 527.81 C213.66 534.45 207.46 543.36 199.80 544.22 L85.82 557.10 C78.16 557.96 71.96 550.47 71.96 543.83 L71.96 210.73 C71.96 204.09 78.16 195.18 85.82 194.32 Z" stroke-width="1.6"/>
 
-            <!-- USB-C on the bottom face -->
-            <path d="M132.9 582.9 L172.9 578.4 L167.2 575.4 L127.1 579.9 Z" stroke-width="1.4"/>
+            <!-- ===== VOLUME ROCKER, right flank ===== -->
+            <g stroke-width="1.4">
+              <path d="M237.49 237.22 L228.86 232.74 L228.86 328.39 L237.49 332.86 Z"/>
+              <path d="M243.65 236.52 L235.02 232.05 L235.02 327.69 L243.65 332.16 Z"/>
+              <path d="M237.49 237.22 L243.65 236.52 M228.86 232.74 L235.02 232.05 M228.86 328.39 L235.02 327.69 M237.49 332.86 L243.65 332.16" stroke-width="1"/>
+              <path d="M243.65 284.34 L235.02 279.87" stroke-width="1"/>
+            </g>
+
+            <!-- knurled grip, side rail -->
+            <path d="M238.20 415.68 L228.14 410.46 M238.20 435.47 L228.14 430.25 M238.20 455.26 L228.14 450.04 M238.20 475.05 L228.14 469.83" stroke-width="1"/>
+
+            <!-- USB-C, bottom face -->
+            <path d="M132.03 575.18 L175.16 570.31 L167.97 566.58 L124.84 571.45 Z" stroke-width="1.3"/>
           </g>
         </svg>
       </div>
