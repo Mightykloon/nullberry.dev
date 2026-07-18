@@ -472,6 +472,15 @@ section + section::before {
 
 .device-visual { display: flex; justify-content: center; }
 
+.mark1-svg {
+  width: min(300px, 82vw);
+  height: auto;
+  display: block;
+  filter:
+    drop-shadow(0 24px 60px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 46px rgba(255, 255, 255, 0.05));
+}
+
 .device-mockup {
   width: min(270px, 70vw);
   aspect-ratio: 9 / 17.5;
